@@ -9,7 +9,7 @@ package model;
  */
 public class Debug {
     /** Whether or not to print to console */
-    public static boolean debugMode = true;
+    public static boolean debugMode = false;
     
     /**
      * @see java.io.PrintStream#print(String)

@@ -59,8 +59,21 @@ public class TileManager {
         }
     }
     
-    public void handlePress(Point p) {
-        
+    public Tile getTile(int xPixel, int yPixel) {
+        Point p = convertToLocalTileCoords(xPixel, yPixel);
+        return home.grid[p.x][p.y];
+    }
+    
+    private Point convertToLocalTileCoords(int xPixel, int yPixel) {
+        return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
+    }
+    
+    public Point[] getActiveRange(Point mouseP) {
+        int left = (int) (Math.floor(mouseP.x / 50.0) * 50);
+        int right = (int) (Math.ceil(mouseP.x / 50.0) * 50);
+        int top = (int) (Math.floor(mouseP.y / 50.0) * 50);
+        int bottom = (int) (Math.ceil(mouseP.y / 50.0) * 50);
+        return new Point[] {new Point(left, top), new Point(right, bottom)};
     }
     
     /**
@@ -94,6 +107,8 @@ public class TileManager {
                 }
             }
             addTile(new Crystal(), 0, 0);
+            addTile(new GrassTile(), 1, 0);
+            addTile(new GrassTile(), 2, 0);
             for(int i = 0; i < TILE_GRID_WIDTH; i++) {
                 for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                     link(i, j);
@@ -167,7 +182,7 @@ public class TileManager {
     
     private class GrassTile extends Tile {
         private GrassTile() {
-            super(tileSheet.getSprite(1, 0), true, 1, true, -1, 4);
+            super(tileSheet.getSprite(1, 0), true, .1, true, -1, 4);
         }
 
         /* (non-Javadoc)

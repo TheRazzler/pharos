@@ -72,7 +72,7 @@ public class Game implements Runnable {
         display.getCanvas().addMouseListener(new MouseListener() {
             @Override
             public void mouseReleased(MouseEvent e) {
-             // TODO Auto-generated method stub
+             State.getState().handleRelease(e);
             }
             @Override
             public void mousePressed(MouseEvent e) {

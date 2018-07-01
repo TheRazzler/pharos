@@ -154,4 +154,18 @@ public abstract class Tile extends Component {
         }
         return false;
     }
+
+    /**
+     * @return
+     */
+    public double getBreakTime() {
+        return breakTime;
+    }
+
+    /**
+     * @return
+     */
+    public boolean canBreak() {
+        return canBreak;
+    }
 }

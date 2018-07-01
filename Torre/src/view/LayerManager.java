@@ -4,6 +4,7 @@
 package view;
 
 import java.awt.Graphics;
+import java.util.ArrayList;
 
 import component.Animator;
 import component.Component;
@@ -16,12 +17,16 @@ import component.Component;
 public class LayerManager {
     /** The front of the LinkedList of Components */
     private Node head;
+    private Node beforeHead;
+    private ArrayList<Node> tempList;
     
     /**
      * Constructs a new LayerManager
      */
     public LayerManager() {
         head = null;
+        beforeHead = new Node(null);
+        tempList = new ArrayList<Node>();
     }
     
     /**
@@ -45,6 +50,40 @@ public class LayerManager {
             Node n = new Node(c);
             n.next = current.next;
             current.next = n;
+        }
+    }
+    
+    public int temporaryAdd(Component c, int layer) {
+        c.setLayer(layer);
+        int toReturn = tempList.size();
+        Node n = new Node(c);
+        if(head == null) {
+            head = n;
+            beforeHead.next = head;
+            tempList.add(beforeHead);
+        } else if(c.layer <= head.c.layer) {
+            n.next = head;
+            n = head;
+            beforeHead.next = head;
+            tempList.add(beforeHead);
+        } else {
+            Node current = head;
+            while(current.next != null && current.next.c.layer < c.layer) {
+                current = current.next;
+            }
+            n.next = current.next;
+            current.next = n;
+            tempList.add(current);
+        }
+        return toReturn;
+    }
+    
+    public void remove(int idx) {
+        Node n = tempList.remove(idx);
+        if(n == beforeHead) {
+            head = head.next;
+        } else {
+            n.next = n.next.next;
         }
     }
     

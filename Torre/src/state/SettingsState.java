@@ -75,4 +75,13 @@ public class SettingsState extends State {
         
     }
 
+    /* (non-Javadoc)
+     * @see state.State#handleRelease(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void handleRelease(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

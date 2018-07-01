@@ -11,8 +11,13 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 
 import assets.Assets;
+import component.Animator;
 import component.Component;
+import component.Tile;
+import model.Debug;
+import model.Loader;
 import model.TileManager;
+import view.SpriteSheet;
 
 /**
  * The State of the game that handles the actual game
@@ -21,6 +26,8 @@ import model.TileManager;
 public class GameState extends State {
     private TileManager tileManager;
     private Component background;
+    private BreakIndicator breakIndicator;
+    private Point[] activeTileRange;
 
     /**
      * @param canvas
@@ -35,7 +42,21 @@ public class GameState extends State {
     @Override
     public void tick() {
         Point p = canvas.getMousePosition();
-        
+        if(breakIndicator != null && p != null) {
+            breakIndicator.place(p.x - 7, p.y - 7);
+            if(p.x < activeTileRange[0].x || p.x > activeTileRange[1].x || p.y < activeTileRange[0].y ||
+                    p.y > activeTileRange[1].y) {
+                layerManager.remove(breakIndicator.index);
+                Tile activeTile = tileManager.getTile(p.x, p.y);
+                if(activeTile != null && activeTile.canBreak()) {
+                    breakIndicator = new BreakIndicator(activeTile.getBreakTime());
+                    layerManager.temporaryAdd(breakIndicator, 2);
+                    activeTileRange = tileManager.getActiveRange(p);
+                } else {
+                    breakIndicator = null;
+                }
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -81,6 +102,36 @@ public class GameState extends State {
      */
     @Override
     public void handlePress(MouseEvent e) {
-        tileManager.handlePress(canvas.getMousePosition());
+        if(SwingUtilities.isLeftMouseButton(e)) {
+            Debug.println("Mouse Pressed");
+            Point p = canvas.getMousePosition();
+            activeTileRange = tileManager.getActiveRange(p);
+            Tile t = tileManager.getTile(p.x, p.y);
+            if(t != null && t.canBreak()) {
+                breakIndicator = new BreakIndicator(t.getBreakTime());
+                breakIndicator.index = layerManager.temporaryAdd(breakIndicator, 2);
+            }
+        }
+    }
+    
+    private static class BreakIndicator extends Component {
+        private int index;
+        private BreakIndicator(double breakTime) {
+            super(null);
+            animator = new Animator(new SpriteSheet(15, 15, Loader.loadTexture("/textures/break_indicator.png")), breakTime);
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see state.State#handleRelease(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void handleRelease(MouseEvent e) {
+        if(SwingUtilities.isLeftMouseButton(e)) {
+            if(breakIndicator != null)
+                layerManager.remove(breakIndicator.index);
+            activeTileRange = null;
+            breakIndicator = null;
+        }
     }
 }

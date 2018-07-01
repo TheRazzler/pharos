@@ -19,9 +19,9 @@ public class Animator {
     /** The index of the current frame of the animation */
     private int frameIndex;
     /** The duration (in in-game ticks) of each frame. Loops. */
-    private int duration;
+    private double duration;
     /** An index to make each frame last the specified duration */
-    private int intraFrameIndex;
+    private double intraFrameIndex;
     
     /**
      * Constructs a new Animator with the sprites in the given SpriteSheet
@@ -29,8 +29,8 @@ public class Animator {
      * @param sheet the given SpriteSheet
      * @param duration the duration of each frame in in-game ticks
      */
-    public Animator(SpriteSheet sheet, int duration) {
-        frameIndex = -1;
+    public Animator(SpriteSheet sheet, double duration) {
+        frameIndex = 0;
         intraFrameIndex = 0;
         this.duration = duration;
         this.frames = new ArrayList<BufferedImage>(sheet.columns * sheet.rows);
@@ -45,11 +45,12 @@ public class Animator {
      * @return the next frame in the animation.
      */
     public BufferedImage nextFrame() {
-        if(intraFrameIndex == 0)
+        intraFrameIndex += 1;
+        while(intraFrameIndex >= duration) {
             frameIndex++;
-        frameIndex %= frames.size();
-        intraFrameIndex++;
-        intraFrameIndex %= duration;
+            frameIndex %= frames.size();
+            intraFrameIndex -= duration;
+        }
         return frames.get(frameIndex);
     }
 }

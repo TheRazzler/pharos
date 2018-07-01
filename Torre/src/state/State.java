@@ -84,4 +84,9 @@ public abstract class State {
      * @see assets.Assets
      */
     protected abstract void unload();
+
+    /**
+     * 
+     */
+    public abstract void handleRelease(MouseEvent e);
 }
