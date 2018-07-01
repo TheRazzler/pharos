@@ -5,6 +5,10 @@ package component;
 
 import java.awt.image.BufferedImage;
 
+import model.Debug;
+import model.Loader;
+import view.SpriteSheet;
+
 /**
  * A class representing a Tile drawn on the screen.
  * @author Spencer Yoder
@@ -35,6 +39,8 @@ public abstract class Tile extends Component {
     /** How many tiles this one can hold in place to prevent falling */
     protected int stickiness;
     
+    private static SpriteSheet tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
+    
     /**
      * Constructs a new Tile with the given states
      * @param texture the texture for the display of this tile (Must be 50x50 pixels)
@@ -59,6 +65,8 @@ public abstract class Tile extends Component {
      * The behavior of this tile when it is right clicked
      */
     public abstract void onRightClick();
+    
+    public abstract Item getItem();
     
     /**
      * Sets a neighbor of this tile using {@link component.Tile#RIGHT}, {@link component.Tile#LEFT}, 
@@ -167,5 +175,99 @@ public abstract class Tile extends Component {
      */
     public boolean canBreak() {
         return canBreak;
+    }
+    
+    /**
+     * The tiles outside the range of the crystal at the top of the tower
+     * Cannot be interacted with, serve as a fog of war
+     * @author Spencer Yoder
+     */
+    public static class LockedTile extends Tile {
+        public LockedTile() {
+            super(tileSheet.getSprite(0, 0), false, -1, false, -1, 0);
+        }
+        @Override
+        public void onRightClick() {
+            //Do nothing
+            Debug.println("LockedTile");
+        }
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            return null;
+        }
+    }
+    
+    public static class Crystal extends Tile {
+        public Crystal() {
+            super(null, false, -1, true, -1, 0);
+            animator = new Animator(new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/crystal.png")), 2);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+    
+    public static class GrassTile extends Tile {
+        public GrassTile() {
+            super(tileSheet.getSprite(1, 0), true, .5, true, -1, 4);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            return new Item.MudItem(x, y);
+        }
+    }
+    
+    public static class StoneTile extends Tile {
+        public StoneTile() {
+            super(tileSheet.getSprite(2, 0), true, 2, true, -1, 6);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 }

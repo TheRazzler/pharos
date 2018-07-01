@@ -8,6 +8,7 @@ import java.awt.Point;
 
 import component.Animator;
 import component.Component;
+import component.Item;
 import component.Tile;
 import view.LayerManager;
 import view.SpriteSheet;
@@ -27,8 +28,7 @@ public class TileManager extends Component {
      * on screen at a given time*/
     private TileGrid home;
     
-    private Point mousePress;
-    private Component breakIndicator;
+    private LayerManager layerManager;
     
     /** The width (in Tiles) of the screen */
     public static final int TILE_GRID_WIDTH = 30;
@@ -39,10 +39,11 @@ public class TileManager extends Component {
      * Constructs a new TileManager which draws to the given LayerManager
      * @param layerManager the LayerManager
      */
-    public TileManager() {
+    public TileManager(LayerManager layerManager) {
         super(null);
         tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
         home = new TileGrid(-14, -10);
+        this.layerManager = layerManager;
     }
     
     /**
@@ -67,9 +68,14 @@ public class TileManager extends Component {
         return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
     }
     
-    public void breakTile(int mouseX, int mouseY) {
+    public Item breakTile(int mouseX, int mouseY) {
         Point p = convertToLocalTileCoords(mouseX, mouseY);
+        Item item = home.grid[p.x][p.y].getItem();
         home.grid[p.x][p.y] = null;
+        if(item != null) {
+            layerManager.addComponent(item, 3);
+        }
+        return item;
     }
     
     @Override
@@ -116,14 +122,18 @@ public class TileManager extends Component {
             grid = new Tile[TILE_GRID_WIDTH][TILE_GRID_HEIGHT];
             for(int globalX = x; globalX < x + TILE_GRID_WIDTH; globalX++) {
                 for(int globalY = y; globalY < y + TILE_GRID_HEIGHT; globalY++) {
-                    if(globalY != 0) {
-                        addTile(new LockedTile(), globalX, globalY);
+                    if(globalY > 0) {
+                        addTile(new Tile.LockedTile(), globalX, globalY);
                     }
                 }
             }
-            addTile(new Crystal(), 0, 0);
-            addTile(new GrassTile(), 1, 0);
-            addTile(new GrassTile(), 2, 0);
+            addTile(new Tile.Crystal(), 0, 0);
+            addTile(new Tile.GrassTile(), 1, 0);
+            addTile(new Tile.GrassTile(), 2, 0);
+            addTile(new Tile.StoneTile(), 3, 0);
+            addTile(new Tile.StoneTile(), 3, -1);
+            addTile(new Tile.StoneTile(), 4, 0);
+            addTile(new Tile.StoneTile(), 4, -1);
             for(int i = 0; i < TILE_GRID_WIDTH; i++) {
                 for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                     link(i, j);
@@ -159,52 +169,6 @@ public class TileManager extends Component {
             int j = y - this.y;
             grid[i][j] = t;
             t.place(i * 50, j * 50);
-        }
-    }
-    
-    /**
-     * The tiles outside the range of the crystal at the top of the tower
-     * Cannot be interacted with, serve as a fog of war
-     * @author Spencer Yoder
-     */
-    private class LockedTile extends Tile {
-        public LockedTile() {
-            super(tileSheet.getSprite(0, 0), false, -1, false, -1, 0);
-        }
-        @Override
-        public void onRightClick() {
-            //Do nothing
-            Debug.println("LockedTile");
-        }
-    }
-    
-    private class Crystal extends Tile {
-        public Crystal() {
-            super(null, false, -1, true, -1, 0);
-            animator = new Animator(new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/crystal.png")), 2);
-        }
-
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
-        }
-    }
-    
-    private class GrassTile extends Tile {
-        private GrassTile() {
-            super(tileSheet.getSprite(1, 0), true, .5, true, -1, 4);
-        }
-
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            
         }
     }
 }
