@@ -5,7 +5,13 @@ package state;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
 
+import javax.swing.SwingUtilities;
+
+import assets.Assets;
+import component.Component;
 import model.TileManager;
 
 /**
@@ -14,13 +20,13 @@ import model.TileManager;
  */
 public class GameState extends State {
     private TileManager tileManager;
+    private Component background;
 
     /**
      * @param canvas
      */
     public GameState(Canvas canvas) {
         super(canvas);
-        // TODO Auto-generated constructor stub
     }
 
     /* (non-Javadoc)
@@ -28,7 +34,7 @@ public class GameState extends State {
      */
     @Override
     public void tick() {
-        // TODO Auto-generated method stub
+        Point p = canvas.getMousePosition();
         
     }
 
@@ -37,17 +43,18 @@ public class GameState extends State {
      */
     @Override
     public void render(Graphics g) {
-        // TODO Auto-generated method stub
-        
+        layerManager.render(g);
     }
 
     /* (non-Javadoc)
      * @see state.State#handleClick()
      */
     @Override
-    public void handleClick() {
-        // TODO Auto-generated method stub
-        
+    public void handleClick(MouseEvent e) {
+        if(SwingUtilities.isRightMouseButton(e)) {
+            Point p = canvas.getMousePosition();
+            tileManager.handleRightClick(p.x, p.y);
+        }
     }
 
     /* (non-Javadoc)
@@ -56,6 +63,9 @@ public class GameState extends State {
     @Override
     protected void load() {
         tileManager = new TileManager(layerManager);
+        Assets.loadGameAssets();
+        background = Assets.gameBackground;
+        layerManager.addComponent(background, 0);
     }
 
     /* (non-Javadoc)

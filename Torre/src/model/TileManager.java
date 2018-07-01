@@ -36,9 +36,9 @@ public class TileManager {
      * @param layerManager the LayerManager
      */
     public TileManager(LayerManager layerManager) {
-        tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
-        home = new TileGrid(14, 10);
         this.layerManager = layerManager;
+        tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
+        home = new TileGrid(-14, -10);
     }
     
     /**
@@ -48,12 +48,10 @@ public class TileManager {
         //TODO
     }
     
-    /**
-     * Draws the Tiles to the screen
-     * @param g the screen to which the Tiles will be drawn
-     */
-    public void render(Graphics g) {
-        home.render(g);
+    public void handleRightClick(int x, int y) {
+        if(home.grid[x / Tile.LENGTH][y / Tile.LENGTH] != null) {
+            home.grid[x / Tile.LENGTH][y / Tile.LENGTH].onRightClick();
+        }
     }
     
     /**
@@ -81,7 +79,7 @@ public class TileManager {
             grid = new Tile[TILE_GRID_WIDTH][TILE_GRID_HEIGHT];
             for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                 for(int i = 0; i < TILE_GRID_WIDTH; i++) {
-                    if(j + y > 0) {
+                    if(j + y != 0) {
                         grid[i][j] = new LockedTile();
                         if(grid[i][j] != null) {
                             grid[i][j].place(i * 50, j * 50);
@@ -114,20 +112,8 @@ public class TileManager {
                 if(j > 0) {
                     current.setNeighbor(grid[i][j - 1], Tile.BOTTOM);
                 }
-                if(i < TILE_GRID_WIDTH - 1) {
+                if(j < TILE_GRID_HEIGHT - 1) {
                     current.setNeighbor(grid[i][j + 1], Tile.TOP);
-                }
-            }
-        }
-        
-        /**
-         * Draws every Tile to the screen
-         * @param g the Graphics to which the Tiles will be drawn
-         */
-        private void render(Graphics g) {
-            for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
-                for(int i = 0; i < TILE_GRID_WIDTH; i++) {
-                    grid[i][j].render(g);
                 }
             }
         }

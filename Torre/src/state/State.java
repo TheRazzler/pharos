@@ -5,6 +5,7 @@ package state;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import model.MouseWatcher;
@@ -70,7 +71,7 @@ public abstract class State {
     /**
      * The code that is run when the State is clicked on
      */
-    public abstract void handleClick();
+    public abstract void handleClick(MouseEvent e);
     /**
      * Loads all assets associated with the State into memory
      * @see assets.Assets

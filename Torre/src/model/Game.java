@@ -90,7 +90,7 @@ public class Game implements Runnable {
             
             @Override
             public void mouseClicked(MouseEvent e) {
-                State.getState().handleClick();
+                State.getState().handleClick(e);
             }
         });
         menuState = new MenuState(display.getCanvas());

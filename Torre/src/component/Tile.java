@@ -19,6 +19,8 @@ public abstract class Tile extends Component {
     /** The index in the neighbors array of the Tile below this one */
     public static final int BOTTOM = 3;
     
+    public static final int LENGTH = 50;
+    
     /** Whether or not the user can break this Tile */
     protected boolean canBreak;
     /** How long it takes the user to break this Tile (in seconds)*/

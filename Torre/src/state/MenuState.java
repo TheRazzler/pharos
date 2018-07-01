@@ -5,6 +5,7 @@ package state;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
 
 import assets.Assets;
 import component.ClickableComponent;
@@ -69,7 +70,8 @@ public class MenuState extends State {
     /**
      * @see state.State#handleClick()
      */
-    @Override public void handleClick() {
+    @Override 
+    public void handleClick(MouseEvent e) {
         mouseWatcher.handleClick();
     }
 

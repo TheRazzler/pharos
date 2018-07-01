@@ -44,6 +44,9 @@ public class Assets {
     public static SettingsButton settingsButton;
     /** The start game button */
     public static StartGameButton startGameButton;
+    
+    //Game Assets
+    public static GameBackground gameBackground;
 
     //Loading Screen Assets (never unloaded)
     /**
@@ -74,6 +77,14 @@ public class Assets {
         menuBackground = null;
         menuButtonSheet = null;
         settingsButton = null;
+    }
+    
+    //Game Assets
+    public static void loadGameAssets() {
+        gameBackground = new GameBackground();
+    }
+    public static void unloadGameAssets() {
+        gameBackground = null;
     }
     
     //Loading Screen Assets
@@ -187,6 +198,13 @@ public class Assets {
         @Override
         public void onMouseLeave() {
             texture = unlit;
+        }
+    }
+    
+    //Game Assets
+    private static class GameBackground extends Component {
+        private GameBackground() {
+            super(Loader.loadTexture("/textures/debug_background.png"));
         }
     }
 }
