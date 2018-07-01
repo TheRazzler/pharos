@@ -13,6 +13,7 @@ import javax.swing.SwingUtilities;
 import assets.Assets;
 import component.Animator;
 import component.Component;
+import component.Item;
 import component.Tile;
 import model.Debug;
 import model.Loader;
@@ -41,12 +42,13 @@ public class GameState extends State {
      */
     @Override
     public void tick() {
+        mouseWatcher.checkComponents();
         Point p = canvas.getMousePosition();
         if(breakIndicator != null && p != null) {
             breakIndicator.place(p.x - 7, p.y - 7);
             if(p.x < activeTileRange[0].x || p.x > activeTileRange[1].x || p.y < activeTileRange[0].y ||
                     p.y > activeTileRange[1].y) {
-                layerManager.remove(breakIndicator.index);
+                layerManager.remove(breakIndicator);
                 Tile activeTile = tileManager.getTile(p.x, p.y);
                 if(activeTile != null && activeTile.canBreak()) {
                     breakIndicator = new BreakIndicator(activeTile.getBreakTime());
@@ -59,8 +61,12 @@ public class GameState extends State {
         }
         if(breakIndicator != null && p != null) {
             if(breakIndicator.progress() >= 60) {
-                tileManager.breakTile(p.x, p.y);
-                layerManager.remove(breakIndicator.index);
+                Item item = tileManager.breakTile(p.x, p.y);
+                if(item != null) {
+                    mouseWatcher.addComponent(item);
+                    layerManager.temporaryAdd(item, 3);
+                }
+                layerManager.remove(breakIndicator);
                 breakIndicator = null;
             }
         }
@@ -82,6 +88,9 @@ public class GameState extends State {
         if(SwingUtilities.isRightMouseButton(e)) {
             Point p = canvas.getMousePosition();
             tileManager.handleRightClick(p.x, p.y);
+        } else if(SwingUtilities.isLeftMouseButton(e)) {
+            Debug.println("Screen clicked");
+            mouseWatcher.handleClick();
         }
     }
 
@@ -111,19 +120,17 @@ public class GameState extends State {
     @Override
     public void handlePress(MouseEvent e) {
         if(SwingUtilities.isLeftMouseButton(e)) {
-            Debug.println("Mouse Pressed");
             Point p = canvas.getMousePosition();
             activeTileRange = tileManager.getActiveRange(p);
             Tile t = tileManager.getTile(p.x, p.y);
             if(t != null && t.canBreak()) {
                 breakIndicator = new BreakIndicator(t.getBreakTime());
-                breakIndicator.index = layerManager.temporaryAdd(breakIndicator, 2);
+                layerManager.temporaryAdd(breakIndicator, 2);
             }
         }
     }
     
     private static class BreakIndicator extends Component {
-        private int index;
         private double progress;
         private double breakTime;
         private BreakIndicator(double breakTime) {
@@ -145,9 +152,18 @@ public class GameState extends State {
     public void handleRelease(MouseEvent e) {
         if(SwingUtilities.isLeftMouseButton(e)) {
             if(breakIndicator != null)
-                layerManager.remove(breakIndicator.index);
+                layerManager.remove(breakIndicator);
             activeTileRange = null;
             breakIndicator = null;
+        }
+    }
+
+    /**
+     * @param item
+     */
+    public void handleItemClick(Item item) {
+        if(item != null) {
+            layerManager.remove(item);
         }
     }
 }

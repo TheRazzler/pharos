@@ -23,6 +23,7 @@ public abstract class Component {
     /** The visual appearance of the component */
     public BufferedImage texture;
     public int layer;
+    public int layerIndex;
     protected Animator animator;
     
     /**

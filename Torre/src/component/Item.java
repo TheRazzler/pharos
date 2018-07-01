@@ -6,6 +6,7 @@ package component;
 import java.awt.Graphics;
 import java.util.Random;
 
+import model.Game;
 import model.Loader;
 import view.SpriteSheet;
 
@@ -22,8 +23,7 @@ public abstract class Item extends ClickableComponent {
     public Item(SpriteSheet spriteSheet, int x, int y) {
         super(null);
         animator = new Animator(spriteSheet, 5);
-        this.x = x + 3;
-        this.y = y + 3;
+        place(x+ 3, y + 3);
         speed = 15;
         Random r = new Random();
         direction = r.nextDouble() * 360;
@@ -52,7 +52,7 @@ public abstract class Item extends ClickableComponent {
      */
     @Override
     public void onClick() {
-        
+        Game.gameState.handleItemClick(this);
     }
     
     @Override

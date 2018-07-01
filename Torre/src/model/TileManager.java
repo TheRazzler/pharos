@@ -72,9 +72,6 @@ public class TileManager extends Component {
         Point p = convertToLocalTileCoords(mouseX, mouseY);
         Item item = home.grid[p.x][p.y].getItem();
         home.grid[p.x][p.y] = null;
-        if(item != null) {
-            layerManager.addComponent(item, 3);
-        }
         return item;
     }
     

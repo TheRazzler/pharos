@@ -53,9 +53,9 @@ public class LayerManager {
         }
     }
     
-    public int temporaryAdd(Component c, int layer) {
+    public void temporaryAdd(Component c, int layer) {
         c.setLayer(layer);
-        int toReturn = tempList.size();
+        c.layerIndex = tempList.size();
         Node n = new Node(c);
         if(head == null) {
             head = n;
@@ -75,11 +75,15 @@ public class LayerManager {
             current.next = n;
             tempList.add(current);
         }
-        return toReturn;
     }
     
-    public void remove(int idx) {
-        Node n = tempList.remove(idx);
+    public void remove(Component c) {
+        Node n = tempList.remove(c.layerIndex);
+        for(int i = 0; i < tempList.size(); i++) {
+            if(tempList.get(i).c.layerIndex != i) {
+                tempList.get(i).c.layerIndex = i;
+            }
+        }
         if(n == beforeHead) {
             head = head.next;
         } else {
