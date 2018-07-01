@@ -47,6 +47,7 @@ public class Assets {
     
     //Game Assets
     public static GameBackground gameBackground;
+    public static BreakIndicator breakIndicator;
 
     //Loading Screen Assets (never unloaded)
     /**
@@ -82,9 +83,11 @@ public class Assets {
     //Game Assets
     public static void loadGameAssets() {
         gameBackground = new GameBackground();
+        breakIndicator = new BreakIndicator();
     }
     public static void unloadGameAssets() {
         gameBackground = null;
+        breakIndicator = null;
     }
     
     //Loading Screen Assets
@@ -205,6 +208,12 @@ public class Assets {
     private static class GameBackground extends Component {
         private GameBackground() {
             super(Loader.loadTexture("/textures/debug_background.png"));
+        }
+    }
+    private static class BreakIndicator extends Component {
+        private BreakIndicator() {
+            super(null);
+            animator = new Animator(new SpriteSheet(15, 15, Loader.loadTexture("/textures/break_indicator.png")), 2);
         }
     }
 }

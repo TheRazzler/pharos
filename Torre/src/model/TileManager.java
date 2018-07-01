@@ -3,9 +3,10 @@
  */
 package model;
 
-import java.awt.Graphics;
+import java.awt.Point;
 
 import component.Animator;
+import component.Component;
 import component.Tile;
 import view.LayerManager;
 import view.SpriteSheet;
@@ -26,6 +27,9 @@ public class TileManager {
      * TEMPORARY: the final game is planned to contain smooth scrolling so multiple TileGrids may be
      * on screen at a given time*/
     private TileGrid home;
+    
+    private Point mousePress;
+    private Component breakIndicator;
     
     /** The width (in Tiles) of the screen */
     public static final int TILE_GRID_WIDTH = 30;
@@ -55,6 +59,10 @@ public class TileManager {
         }
     }
     
+    public void handlePress(Point p) {
+        
+    }
+    
     /**
      * A 30x20 grid of Tiles.
      * These are the groups of tiles which will be loaded in memory (i.e. if the user navigates far
@@ -78,20 +86,14 @@ public class TileManager {
             this.x = x;
             this.y = y;
             grid = new Tile[TILE_GRID_WIDTH][TILE_GRID_HEIGHT];
-            for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
-                for(int i = 0; i < TILE_GRID_WIDTH; i++) {
-                    if(j + y != 0) {
-                        grid[i][j] = new LockedTile();
-                        if(grid[i][j] != null) {
-                            grid[i][j].place(i * 50, j * 50);
-                            layerManager.addComponent(grid[i][j], 1);
-                        }
+            for(int globalX = x; globalX < x + TILE_GRID_WIDTH; globalX++) {
+                for(int globalY = y; globalY < y + TILE_GRID_HEIGHT; globalY++) {
+                    if(globalY != 0) {
+                        addTile(new LockedTile(), globalX, globalY);
                     }
                 }
             }
-            grid[-x][-y] = new Crystal();
-            grid[-x][-y].place(-x * 50, -y * 50);
-            layerManager.addComponent(grid[-x][-y], 1);
+            addTile(new Crystal(), 0, 0);
             for(int i = 0; i < TILE_GRID_WIDTH; i++) {
                 for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                     link(i, j);
@@ -120,6 +122,14 @@ public class TileManager {
                     current.setNeighbor(grid[i][j + 1], Tile.TOP);
                 }
             }
+        }
+        
+        private void addTile(Tile t, int x, int y) {
+            int i = x - this.x;
+            int j = y - this.y;
+            grid[i][j] = t;
+            t.place(i * 50, j * 50);
+            layerManager.addComponent(t, 1);
         }
     }
     
@@ -151,6 +161,20 @@ public class TileManager {
         @Override
         public void onRightClick() {
             // TODO Auto-generated method stub
+            
+        }
+    }
+    
+    private class GrassTile extends Tile {
+        private GrassTile() {
+            super(tileSheet.getSprite(1, 0), true, 1, true, -1, 4);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
             
         }
     }

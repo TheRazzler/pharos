@@ -76,7 +76,7 @@ public class Game implements Runnable {
             }
             @Override
             public void mousePressed(MouseEvent e) {
-                // TODO Auto-generated method stub
+                State.getState().handlePress(e);
             }
             @Override
             public void mouseExited(MouseEvent e) {

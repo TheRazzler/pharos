@@ -66,4 +66,13 @@ public class SettingsState extends State {
         
     }
 
+    /* (non-Javadoc)
+     * @see state.State#handlePress(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void handlePress(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+
 }

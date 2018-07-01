@@ -145,4 +145,13 @@ public abstract class Tile extends Component {
     public Tile getNeighbor(int index) {
         return neighbors[index];
     }
+    
+    public boolean isAccessible() {
+        for(int i = 0; i < neighbors.length; i++) {
+            if(neighbors[i] == null) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

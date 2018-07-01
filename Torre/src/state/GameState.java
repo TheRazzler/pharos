@@ -75,4 +75,12 @@ public class GameState extends State {
     protected void unload() {
         tileManager = null;
     }
+
+    /* (non-Javadoc)
+     * @see state.State#handlePress(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void handlePress(MouseEvent e) {
+        tileManager.handlePress(canvas.getMousePosition());
+    }
 }

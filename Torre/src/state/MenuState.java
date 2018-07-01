@@ -5,6 +5,7 @@ package state;
 
 import java.awt.Canvas;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 
 import assets.Assets;
@@ -45,6 +46,7 @@ public class MenuState extends State {
         layerManager.addComponent(settingsButton, 1);
         layerManager.addComponent(background, 0);
         layerManager.addComponent(lightAnimation, 1);
+        layerManager.addComponent(Assets.breakIndicator, 2);
         
         startButton.place(550, 410);
         settingsButton.place(550, 500);
@@ -57,6 +59,11 @@ public class MenuState extends State {
     @Override
     public void tick() {
         mouseWatcher.checkComponents();
+        Component c = Assets.breakIndicator;
+        Point p = canvas.getMousePosition();
+        if(p != null) {
+            c.place(p.x - 7, p.y - 7);
+        }
     }
     
     /**
@@ -81,6 +88,7 @@ public class MenuState extends State {
     @Override
     public void load() {
         Assets.loadMenuAssets();
+        Assets.loadGameAssets();
     }
 
     /**
@@ -89,5 +97,14 @@ public class MenuState extends State {
     @Override
     public void unload() {
         Assets.unloadMenuAssets();
+    }
+
+    /* (non-Javadoc)
+     * @see state.State#handlePress(java.awt.event.MouseEvent)
+     */
+    @Override
+    public void handlePress(MouseEvent e) {
+        // TODO Auto-generated method stub
+        
     }
 }

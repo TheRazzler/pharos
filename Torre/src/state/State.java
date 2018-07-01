@@ -72,6 +72,8 @@ public abstract class State {
      * The code that is run when the State is clicked on
      */
     public abstract void handleClick(MouseEvent e);
+    
+    public abstract void handlePress(MouseEvent e);
     /**
      * Loads all assets associated with the State into memory
      * @see assets.Assets
