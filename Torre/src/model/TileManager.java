@@ -5,6 +5,7 @@ package model;
 
 import java.awt.Graphics;
 
+import component.Animator;
 import component.Tile;
 import view.LayerManager;
 import view.SpriteSheet;
@@ -88,6 +89,9 @@ public class TileManager {
                     }
                 }
             }
+            grid[-x][-y] = new Crystal();
+            grid[-x][-y].place(-x * 50, -y * 50);
+            layerManager.addComponent(grid[-x][-y], 1);
             for(int i = 0; i < TILE_GRID_WIDTH; i++) {
                 for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                     link(i, j);
@@ -132,6 +136,22 @@ public class TileManager {
         public void onRightClick() {
             //Do nothing
             Debug.println("LockedTile");
+        }
+    }
+    
+    private class Crystal extends Tile {
+        public Crystal() {
+            super(null, false, -1, true, -1, 0);
+            animator = new Animator(new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/crystal.png")), 2);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
         }
     }
 }
