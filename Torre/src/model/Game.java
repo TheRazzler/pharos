@@ -33,9 +33,9 @@ public class Game implements Runnable {
     private Thread thread;
     /** Whether or not the game is currently running (i.e. is done initializing */
     private boolean running = false;
-    /** The {@link java.awt.image.BufferStrategy} for displaying each frame of the game*/
+    /** The {@link java.awt.image.BufferStrategy} for displaying each frame of the game */
     private BufferStrategy bs;
-    /** The {@link java.awt.Graphics} the game will draw to*/
+    /** The {@link java.awt.Graphics} the game will draw to */
     private Graphics g;
     
     /**
