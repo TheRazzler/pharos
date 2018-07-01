@@ -3,6 +3,7 @@
  */
 package model;
 
+import java.awt.Graphics;
 import java.awt.Point;
 
 import component.Animator;
@@ -18,11 +19,9 @@ import view.SpriteSheet;
  * because the TileManager contains data about every Tile
  * @author Spencer Yoder
  */
-public class TileManager {
+public class TileManager extends Component {
     /** The SpriteSheet which contains the textures for each tile */
     private SpriteSheet tileSheet;
-    /** The {@link view.LayerManager} to which the TileManager will draw the Tiles */
-    private LayerManager layerManager;
     /** The TileGrid which occupies the screen 
      * TEMPORARY: the final game is planned to contain smooth scrolling so multiple TileGrids may be
      * on screen at a given time*/
@@ -40,8 +39,8 @@ public class TileManager {
      * Constructs a new TileManager which draws to the given LayerManager
      * @param layerManager the LayerManager
      */
-    public TileManager(LayerManager layerManager) {
-        this.layerManager = layerManager;
+    public TileManager() {
+        super(null);
         tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
         home = new TileGrid(-14, -10);
     }
@@ -66,6 +65,22 @@ public class TileManager {
     
     private Point convertToLocalTileCoords(int xPixel, int yPixel) {
         return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
+    }
+    
+    public void breakTile(int mouseX, int mouseY) {
+        Point p = convertToLocalTileCoords(mouseX, mouseY);
+        home.grid[p.x][p.y] = null;
+    }
+    
+    @Override
+    public void render(Graphics g) {
+        for(int i = 0; i < TILE_GRID_WIDTH; i++) {
+            for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
+                if(home.grid[i][j] != null) {
+                    home.grid[i][j].render(g);
+                }
+            }
+        }
     }
     
     public Point[] getActiveRange(Point mouseP) {
@@ -144,7 +159,6 @@ public class TileManager {
             int j = y - this.y;
             grid[i][j] = t;
             t.place(i * 50, j * 50);
-            layerManager.addComponent(t, 1);
         }
     }
     
@@ -182,7 +196,7 @@ public class TileManager {
     
     private class GrassTile extends Tile {
         private GrassTile() {
-            super(tileSheet.getSprite(1, 0), true, .1, true, -1, 4);
+            super(tileSheet.getSprite(1, 0), true, .5, true, -1, 4);
         }
 
         /* (non-Javadoc)

@@ -57,6 +57,13 @@ public class GameState extends State {
                 }
             }
         }
+        if(breakIndicator != null && p != null) {
+            if(breakIndicator.progress() >= 60) {
+                tileManager.breakTile(p.x, p.y);
+                layerManager.remove(breakIndicator.index);
+                breakIndicator = null;
+            }
+        }
     }
 
     /* (non-Javadoc)
@@ -83,10 +90,11 @@ public class GameState extends State {
      */
     @Override
     protected void load() {
-        tileManager = new TileManager(layerManager);
+        tileManager = new TileManager();
         Assets.loadGameAssets();
         background = Assets.gameBackground;
         layerManager.addComponent(background, 0);
+        layerManager.addComponent(tileManager, 1);
     }
 
     /* (non-Javadoc)
@@ -116,9 +124,17 @@ public class GameState extends State {
     
     private static class BreakIndicator extends Component {
         private int index;
+        private int progress;
+        private double breakTime;
         private BreakIndicator(double breakTime) {
             super(null);
+            this.breakTime = breakTime;
+            progress = 0;
             animator = new Animator(new SpriteSheet(15, 15, Loader.loadTexture("/textures/break_indicator.png")), breakTime);
+        }
+        private int progress() {
+            progress += (int) (1 / breakTime);
+            return progress;
         }
     }
 
