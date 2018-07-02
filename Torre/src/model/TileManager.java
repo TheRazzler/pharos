@@ -21,14 +21,10 @@ import view.SpriteSheet;
  * @author Spencer Yoder
  */
 public class TileManager extends Component {
-    /** The SpriteSheet which contains the textures for each tile */
-    private SpriteSheet tileSheet;
     /** The TileGrid which occupies the screen 
      * TEMPORARY: the final game is planned to contain smooth scrolling so multiple TileGrids may be
      * on screen at a given time*/
     private TileGrid home;
-    
-    private LayerManager layerManager;
     
     /** The width (in Tiles) of the screen */
     public static final int TILE_GRID_WIDTH = 30;
@@ -39,11 +35,9 @@ public class TileManager extends Component {
      * Constructs a new TileManager which draws to the given LayerManager
      * @param layerManager the LayerManager
      */
-    public TileManager(LayerManager layerManager) {
+    public TileManager() {
         super(null);
-        tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
         home = new TileGrid(-14, -10);
-        this.layerManager = layerManager;
     }
     
     /**

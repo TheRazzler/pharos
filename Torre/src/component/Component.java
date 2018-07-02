@@ -23,7 +23,7 @@ public abstract class Component {
     /** The visual appearance of the component */
     public BufferedImage texture;
     public int layer;
-    public int layerIndex;
+    private int layerIndex;
     protected Animator animator;
     
     /**
@@ -52,7 +52,7 @@ public abstract class Component {
      */
     public void render(Graphics g) {
         if(animator != null) {
-            texture = animator.nextFrame();
+            updateTexture(animator.nextFrame());
         }
         g.drawImage(texture, x, y, null);
     }
@@ -66,6 +66,14 @@ public abstract class Component {
         this.layer = layer;
     }
     
+    public void setLayerIndex(int layerIndex) {
+        this.layerIndex = layerIndex;
+    }
+    
+    public int getLayerIndex() {
+        return layerIndex;
+    }
+    
     /**
      * Sets the texture of this component to be the given texture
      * @param texture the new texture
@@ -76,5 +84,10 @@ public abstract class Component {
             this.width = texture.getWidth();
             this.height = texture.getHeight();
         }
+    }
+    
+    @Override
+    public String toString() {
+        return "layer: " + layer + " layerIndex: " + layerIndex;
     }
 }

@@ -67,7 +67,7 @@ public abstract class Item extends ClickableComponent {
     }
     
     public static class MudItem extends Item {
-        private static final SpriteSheet mudSheet = new SpriteSheet(44, 44, Loader.loadTexture("/textures/item/mud_item_sheet.png"));
+        private static final SpriteSheet mudSheet = new SpriteSheet(44, 44, Loader.loadTexture("/textures/item/mud_item_sheet2.png"));
 
         /**
          * @param texture

@@ -99,7 +99,7 @@ public class GameState extends State {
      */
     @Override
     protected void load() {
-        tileManager = new TileManager(layerManager);
+        tileManager = new TileManager();
         Assets.loadGameAssets();
         background = Assets.gameBackground;
         layerManager.addComponent(background, 0);

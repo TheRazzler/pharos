@@ -6,8 +6,8 @@ package view;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
-import component.Animator;
 import component.Component;
+import model.Debug;
 
 /**
  * A class for handling layers (drawing Components on top of other Components)
@@ -17,7 +17,6 @@ import component.Component;
 public class LayerManager {
     /** The front of the LinkedList of Components */
     private Node head;
-    private Node beforeHead;
     private ArrayList<Node> tempList;
     
     /**
@@ -25,7 +24,6 @@ public class LayerManager {
      */
     public LayerManager() {
         head = null;
-        beforeHead = new Node(null);
         tempList = new ArrayList<Node>();
     }
     
@@ -36,59 +34,50 @@ public class LayerManager {
      */
     public void addComponent(Component c, int layer) {
         c.setLayer(layer);
+        addNode(new Node(c));
+    }
+    
+    private void addNode(Node n) {
         if(head == null) {
-            head = new Node(c);
-        } else if(c.layer <= head.c.layer) {
-            Node n = new Node(c);
+            head = n;
+        } else if(n.c.layer <= head.c.layer) {
             n.next = head;
+            head.prev = n;
             head = n;
         } else {
             Node current = head;
-            while(current.next != null && current.next.c.layer < c.layer) {
+            while(current.next != null && current.next.c.layer < n.c.layer) {
                 current = current.next;
             }
-            Node n = new Node(c);
             n.next = current.next;
+            if(current.next != null)
+                current.next.prev = n;
             current.next = n;
+            n.prev = current;
         }
     }
     
     public void temporaryAdd(Component c, int layer) {
         c.setLayer(layer);
-        c.layerIndex = tempList.size();
+        c.setLayerIndex(tempList.size());
         Node n = new Node(c);
-        if(head == null) {
-            head = n;
-            beforeHead.next = head;
-            tempList.add(beforeHead);
-        } else if(c.layer <= head.c.layer) {
-            n.next = head;
-            n = head;
-            beforeHead.next = head;
-            tempList.add(beforeHead);
-        } else {
-            Node current = head;
-            while(current.next != null && current.next.c.layer < c.layer) {
-                current = current.next;
-            }
-            n.next = current.next;
-            current.next = n;
-            tempList.add(current);
-        }
+        addNode(n);
+        tempList.add(n);
+        Debug.println(toString());
     }
     
     public void remove(Component c) {
-        Node n = tempList.remove(c.layerIndex);
+        Node n = tempList.remove(c.getLayerIndex());
         for(int i = 0; i < tempList.size(); i++) {
-            if(tempList.get(i).c.layerIndex != i) {
-                tempList.get(i).c.layerIndex = i;
+            if(tempList.get(i).c.getLayerIndex() != i) {
+                tempList.get(i).c.setLayerIndex(i);
             }
         }
-        if(n == beforeHead) {
-            head = head.next;
-        } else {
-            n.next = n.next.next;
-        }
+        if(n.prev != null)
+            n.prev.next = n.next;
+        if(n.next != null)
+            n.next.prev = n.prev;
+        Debug.println(toString());
     }
     
     /**
@@ -104,6 +93,24 @@ public class LayerManager {
     }
     
     /**
+     * @return a String representation of the LinkedList for debugging
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[");
+        if(head != null) {
+            sb.append(head.c.toString());
+            Node current = head.next;
+            while(current != null) {
+                sb.append(", " + current.c.toString());
+                current = current.next;
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+    
+    /**
      * A Node in the LinkedList
      * @author Spencer Yoder
      */
@@ -112,6 +119,7 @@ public class LayerManager {
         private Node next;
         /** The Component */
         private Component c;
+        private Node prev;
         
         /**
          * Constructs a new Node with the given Component
@@ -119,6 +127,10 @@ public class LayerManager {
          */
         private Node(Component c) {
             this.c = c;
+        }
+        @Override
+        public String toString() {
+            return c.toString();
         }
     }
 }
