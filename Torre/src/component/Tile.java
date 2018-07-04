@@ -117,7 +117,8 @@ public abstract class Tile extends Component {
             if(stickFactor == 0) {
                 return false;
             }
-            return neighbors[direction].checkSide(direction, stickFactor - 1);
+            if(neighbors[direction] != null)
+                return neighbors[direction].checkSide(direction, stickFactor - 1);
         }
         return true;
     }
@@ -223,6 +224,10 @@ public abstract class Tile extends Component {
             // TODO Auto-generated method stub
             return null;
         }
+        @Override
+        public boolean willFall() {
+            return super.willFall();
+        }
     }
     
     public static class GrassTile extends Tile {
@@ -266,8 +271,7 @@ public abstract class Tile extends Component {
          */
         @Override
         public Item getItem() {
-            // TODO Auto-generated method stub
-            return null;
+            return new Item.StoneItem(x, y);
         }
     }
 }

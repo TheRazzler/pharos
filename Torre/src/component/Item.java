@@ -34,8 +34,7 @@ public abstract class Item extends ClickableComponent {
      */
     @Override
     public void onMouseOver() {
-        // TODO Auto-generated method stub
-
+        Game.gameState.handleItemClick(this);
     }
 
     /* (non-Javadoc)
@@ -52,7 +51,7 @@ public abstract class Item extends ClickableComponent {
      */
     @Override
     public void onClick() {
-        Game.gameState.handleItemClick(this);
+        
     }
     
     @Override
@@ -77,5 +76,18 @@ public abstract class Item extends ClickableComponent {
         public MudItem(int x, int y) {
             super(mudSheet, x, y);
         }
+    }
+    
+    public static class StoneItem extends Item {
+        /**
+         * @param spriteSheet
+         * @param x
+         * @param y
+         */
+        public StoneItem(int x, int y) {
+            super(stoneSheet, x, y);
+        }
+
+        private static final SpriteSheet stoneSheet = new SpriteSheet(44, 44, Loader.loadTexture("/textures/item/cobblestone_item_sheet.png"));
     }
 }

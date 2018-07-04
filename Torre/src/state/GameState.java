@@ -4,6 +4,8 @@
 package state;
 
 import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -29,6 +31,7 @@ public class GameState extends State {
     private Component background;
     private BreakIndicator breakIndicator;
     private Point[] activeTileRange;
+    private Hotbar hotbar;
 
     /**
      * @param canvas
@@ -63,13 +66,14 @@ public class GameState extends State {
             if(breakIndicator.progress() >= 60) {
                 Item item = tileManager.breakTile(p.x, p.y);
                 if(item != null) {
-                    mouseWatcher.addComponent(item);
+                    mouseWatcher.temporaryAdd(item);
                     layerManager.temporaryAdd(item, 3);
                 }
                 layerManager.remove(breakIndicator);
                 breakIndicator = null;
             }
         }
+        tileManager.tick();
     }
 
     /* (non-Javadoc)
@@ -104,6 +108,9 @@ public class GameState extends State {
         background = Assets.gameBackground;
         layerManager.addComponent(background, 0);
         layerManager.addComponent(tileManager, 1);
+        hotbar = new Hotbar();
+        hotbar.place(523, 938);
+        layerManager.addComponent(hotbar, 5);
     }
 
     /* (non-Javadoc)
@@ -164,6 +171,67 @@ public class GameState extends State {
     public void handleItemClick(Item item) {
         if(item != null) {
             layerManager.remove(item);
+            mouseWatcher.remove(item);
+            hotbar.addItem(item);
+        }
+    }
+    
+    private class Hotbar extends Component {
+        private InventorySlot[] slots;
+        private Hotbar() {
+            super(Loader.loadTexture("/textures/hotbar.png"));
+            slots = new InventorySlot[8];
+        }
+        
+        public boolean addItem(Item item) {
+            int idx = -1;
+            boolean found = false;
+            for(int i = 0; i < slots.length; i++) {
+                if(slots[i] == null) {
+                    if(!found) {
+                        idx = i;
+                        found = true;
+                    }
+                } else if(slots[i].item.getClass() == item.getClass()){
+                    slots[i].amount++;
+                    break;
+                }
+            }
+            if(found) {
+                slots[idx] = new InventorySlot(item);
+            }
+            return found;
+        }
+        
+        @Override
+        public void render(Graphics g) {
+            super.render(g);
+            for(int i = 0; i < slots.length; i++) {
+                if(slots[i] != null) {
+                    slots[i].place(x + 56 * i + 9, y + 9);
+                    slots[i].render(g);
+                }
+            }
+        }
+    }
+    
+    private class InventorySlot extends Component {
+        private int amount;
+        private Item item;
+        
+        private InventorySlot(Item i) {
+            super(null);
+            animator = i.getAnimator();
+            amount = 1;
+            item = i;
+        }
+        
+        @Override
+        public void render(Graphics g) {
+            super.render(g);
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Monospaced", Font.BOLD, 24));
+            g.drawString("" + amount, x + 34, y + 42);
         }
     }
 }

@@ -23,7 +23,7 @@ public abstract class Component {
     /** The visual appearance of the component */
     public BufferedImage texture;
     public int layer;
-    private int layerIndex;
+    protected int layerIndex;
     protected Animator animator;
     
     /**
@@ -89,5 +89,9 @@ public abstract class Component {
     @Override
     public String toString() {
         return "layer: " + layer + " layerIndex: " + layerIndex;
+    }
+    
+    public Animator getAnimator() {
+        return animator;
     }
 }

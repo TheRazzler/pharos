@@ -63,21 +63,23 @@ public class LayerManager {
         Node n = new Node(c);
         addNode(n);
         tempList.add(n);
-        Debug.println(toString());
     }
     
     public void remove(Component c) {
-        Node n = tempList.remove(c.getLayerIndex());
-        for(int i = 0; i < tempList.size(); i++) {
-            if(tempList.get(i).c.getLayerIndex() != i) {
-                tempList.get(i).c.setLayerIndex(i);
+        if(!tempList.isEmpty()) {
+            Node n = tempList.remove(c.getLayerIndex());
+            for(int i = 0; i < tempList.size(); i++) {
+                if(tempList.get(i).c.getLayerIndex() != i) {
+                    tempList.get(i).c.setLayerIndex(i);
+                }
             }
+            if(n.prev != null)
+                n.prev.next = n.next;
+            else
+                head = head.next;
+            if(n.next != null)
+                n.next.prev = n.prev;
         }
-        if(n.prev != null)
-            n.prev.next = n.next;
-        if(n.next != null)
-            n.next.prev = n.prev;
-        Debug.println(toString());
     }
     
     /**

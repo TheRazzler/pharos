@@ -5,6 +5,7 @@ package model;
 
 import java.awt.Canvas;
 import java.awt.Point;
+import java.util.ArrayList;
 
 import component.ClickableComponent;
 
@@ -20,6 +21,8 @@ public class MouseWatcher {
     /** The Component over which the mouse is hovering */
     private ClickableComponent activeComponent;
     
+    private ArrayList<Node> tempList;
+    
     /**
      * Constructs a new MouseWatcher which receives a mouse position from the given canvas
      * @param canvas the canvas which communicates the mouse position
@@ -27,6 +30,7 @@ public class MouseWatcher {
     public MouseWatcher(Canvas canvas) {
         head = null;
         this.canvas = canvas;
+        tempList = new ArrayList<Node>();
     }
     
     /**
@@ -36,21 +40,14 @@ public class MouseWatcher {
      * @param c the Component to add
      */
     public void addComponent(ClickableComponent c) {
-        if(head == null) {
-            head = new Node(c);
-        } else if (c.compareTo(head.c) <= 0) {
-            Node n = new Node(c);
-            n.next = head;
-            head = n;
-        } else {
-            Node current = head;
-            while(current.next != null && current.next.c.compareTo(c) > 0) {
-                current = current.next;
-            }
-            Node n = new Node(c);
-            n.next = current.next;
-            current.next = n;
-        }
+        addNode(new Node(c));
+    }
+    
+    public void temporaryAdd(ClickableComponent c) {
+        c.setMouseIndex(tempList.size());
+        Node n = new Node(c);
+        addNode(n);
+        tempList.add(n);
     }
     
     /**
@@ -101,6 +98,7 @@ public class MouseWatcher {
      */
     private class Node {
         private Node next;
+        private Node prev;
         private ClickableComponent c;
         private Node(ClickableComponent c) {
             this.c = c;
@@ -114,6 +112,45 @@ public class MouseWatcher {
     public void handleClick() {
         if(activeComponent != null) {
             activeComponent.onClick();
+        }
+    }
+    
+    private void addNode(Node n) {
+        if(head == null) {
+            head = n;
+        } else if(n.c.layer <= head.c.layer) {
+            n.next = head;
+            head.prev = n;
+            head = n;
+        } else {
+            Node current = head;
+            while(current.next != null && current.next.c.layer < n.c.layer) {
+                current = current.next;
+            }
+            n.next = current.next;
+            if(current.next != null)
+                current.next.prev = n;
+            current.next = n;
+            n.prev = current;
+        }
+    }
+    
+    public void remove(ClickableComponent c) {
+        if(!tempList.isEmpty()) {
+            Node n = tempList.remove(c.getMouseIndex());
+            for(int i = 0; i < tempList.size(); i++) {
+                if(tempList.get(i).c.getMouseIndex() != i) {
+                    tempList.get(i).c.setMouseIndex(i);
+                }
+            }
+            if(n.prev != null)
+                n.prev.next = n.next;
+            else
+                head = head.next;
+            if(n.next != null)
+                n.next.prev = n.prev;
+        } else {
+            Debug.println("MouseWatcher attempt to remove from empty list");
         }
     }
 }

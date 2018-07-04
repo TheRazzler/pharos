@@ -24,6 +24,8 @@ public abstract class ClickableComponent extends Component implements Comparable
     /** Whether or not the mouse is currently over the Component */
     public boolean mouseOver = false;
     
+    protected int mouseIndex;
+    
     /** @see component.Component#Component(BufferedImage) */
     public ClickableComponent(BufferedImage texture) {
         super(texture);
@@ -81,6 +83,14 @@ public abstract class ClickableComponent extends Component implements Comparable
     public void updateTexture(BufferedImage texture) {
         super.updateTexture(texture);
         bound = new Bound(new Point(x, y), new Point(x + width - 1, y + height - 1));
+    }
+    
+    public int getMouseIndex() {
+        return mouseIndex;
+    }
+    
+    public void setMouseIndex(int mouseIndex) {
+        this.mouseIndex = mouseIndex;
     }
     
     /** The code that gets run when the component is moused over */
