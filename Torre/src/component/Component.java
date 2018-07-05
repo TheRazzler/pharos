@@ -54,7 +54,9 @@ public abstract class Component {
         if(animator != null) {
             updateTexture(animator.nextFrame());
         }
-        g.drawImage(texture, x, y, null);
+        if(texture != null) {
+            g.drawImage(texture, x, y, null);
+        }
     }
     
     /**

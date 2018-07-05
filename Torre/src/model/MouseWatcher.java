@@ -59,7 +59,7 @@ public class MouseWatcher {
         Point mousePos = canvas.getMousePosition();
         if(activeComponent == null) {
             Node current = head;
-            while(current != null /*&& current.c.bound.withinScope(mousePos)*/) {
+            while(current != null && current.c.bound.withinScope(mousePos)) {
                 int status = current.c.reactToMouse(mousePos);
                 if(status == ClickableComponent.MOUSE_ON) {
                     activeComponent = current.c;

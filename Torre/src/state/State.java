@@ -6,6 +6,7 @@ package state;
 import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 
 import model.MouseWatcher;
@@ -89,4 +90,11 @@ public abstract class State {
      * 
      */
     public abstract void handleRelease(MouseEvent e);
+
+    /**
+     * @param e
+     */
+    public void handleScroll(MouseWheelEvent e) {
+        //Do nothing by default
+    }
 }

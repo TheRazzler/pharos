@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
 import javax.swing.SwingUtilities;
 
@@ -32,6 +33,7 @@ public class GameState extends State {
     private BreakIndicator breakIndicator;
     private Point[] activeTileRange;
     private Hotbar hotbar;
+    private PlaceIndicator placeIndicator;
 
     /**
      * @param canvas
@@ -55,7 +57,7 @@ public class GameState extends State {
                 Tile activeTile = tileManager.getTile(p.x, p.y);
                 if(activeTile != null && activeTile.canBreak()) {
                     breakIndicator = new BreakIndicator(activeTile.getBreakTime());
-                    layerManager.temporaryAdd(breakIndicator, 2);
+                    layerManager.temporaryAdd(breakIndicator, 3);
                     activeTileRange = tileManager.getActiveRange(p);
                 } else {
                     breakIndicator = null;
@@ -74,6 +76,7 @@ public class GameState extends State {
             }
         }
         tileManager.tick();
+        hotbar.tick();
     }
 
     /* (non-Javadoc)
@@ -91,7 +94,9 @@ public class GameState extends State {
     public void handleClick(MouseEvent e) {
         if(SwingUtilities.isRightMouseButton(e)) {
             Point p = canvas.getMousePosition();
-            tileManager.handleRightClick(p.x, p.y);
+            if(tileManager.handleRightClick(p.x, p.y, placeIndicator.slot == null ? null : placeIndicator.slot.item.getTile())) {
+                hotbar.slots[hotbar.index].amount--;
+            }
         } else if(SwingUtilities.isLeftMouseButton(e)) {
             Debug.println("Screen clicked");
             mouseWatcher.handleClick();
@@ -109,8 +114,15 @@ public class GameState extends State {
         layerManager.addComponent(background, 0);
         layerManager.addComponent(tileManager, 1);
         hotbar = new Hotbar();
-        hotbar.place(523, 938);
+        hotbar.place(523, 924);
         layerManager.addComponent(hotbar, 5);
+        placeIndicator = new PlaceIndicator(hotbar.slots[hotbar.index]);
+        layerManager.addComponent(placeIndicator, 2);
+        
+        hotbar.slots[0] = new InventorySlot(new Item.MudItem(0, 0));
+        hotbar.slots[0].amount = 100;
+        hotbar.slots[1] = new InventorySlot(new Item.StoneItem(0, 0));
+        hotbar.slots[1].amount = 100;
     }
 
     /* (non-Javadoc)
@@ -132,9 +144,15 @@ public class GameState extends State {
             Tile t = tileManager.getTile(p.x, p.y);
             if(t != null && t.canBreak()) {
                 breakIndicator = new BreakIndicator(t.getBreakTime());
-                layerManager.temporaryAdd(breakIndicator, 2);
+                layerManager.temporaryAdd(breakIndicator, 3);
             }
         }
+    }
+    
+    @Override
+    public void handleScroll(MouseWheelEvent e) {
+        hotbar.changeSelection(e.getWheelRotation());
+        placeIndicator.setInventorySlot(hotbar.slots[hotbar.index]);
     }
     
     private static class BreakIndicator extends Component {
@@ -178,9 +196,13 @@ public class GameState extends State {
     
     private class Hotbar extends Component {
         private InventorySlot[] slots;
+        private int index;
+        private Selection selection;
+        
         private Hotbar() {
             super(Loader.loadTexture("/textures/hotbar.png"));
             slots = new InventorySlot[8];
+            selection = new Selection();
         }
         
         public boolean addItem(Item item) {
@@ -199,8 +221,17 @@ public class GameState extends State {
             }
             if(found) {
                 slots[idx] = new InventorySlot(item);
+                if(idx == index) {
+                    placeIndicator.setInventorySlot(slots[idx]);
+                }
             }
             return found;
+        }
+        
+        public void changeSelection(int i) {
+            index = (index + i) % 8;
+            if(index < 0)
+                index = 7;
         }
         
         @Override
@@ -211,6 +242,25 @@ public class GameState extends State {
                     slots[i].place(x + 56 * i + 9, y + 9);
                     slots[i].render(g);
                 }
+            }
+            selection.place(2 + x + 56 * index, 2 + y);
+            selection.render(g);
+        }
+        
+        public void tick() {
+            for(int i = 0; i < slots.length; i++) {
+                if(slots[i] != null && slots[i].amount == 0) {
+                    slots[i] = null;
+                    if(i == index) {
+                        placeIndicator.setInventorySlot(null);
+                    }
+                }
+            }
+        }
+        
+        private class Selection extends Component {
+            private Selection() {
+                super(Loader.loadTexture("/textures/selection.png"));
             }
         }
     }
@@ -231,7 +281,41 @@ public class GameState extends State {
             super.render(g);
             g.setColor(Color.WHITE);
             g.setFont(new Font("Monospaced", Font.BOLD, 24));
-            g.drawString("" + amount, x + 34, y + 42);
+            int width = g.getFontMetrics().stringWidth("" + amount);
+            g.drawString("" + amount, x + 46 - width, y + 42);
+        }
+    }
+    
+    private class PlaceIndicator extends Component {
+        private InventorySlot slot;
+        
+        public PlaceIndicator(InventorySlot  slot) {
+            super(null);
+            setInventorySlot(slot);
+        }
+        
+        private void setInventorySlot(InventorySlot slot) {
+            if(this.slot == null || slot == null || slot.item.getClass() != this.slot.item.getClass()) {
+                if(slot != null)
+                    animator = slot.getAnimator();
+                else {
+                    animator = null;
+                    texture = null;
+                }
+                this.slot = slot;
+            }
+        }
+        
+        @Override
+        public void render(Graphics g) {
+            super.render(g);
+            Point p = canvas.getMousePosition();
+            if(p != null) {
+                p = tileManager.convertToLocalTileCoords(p.x, p.y);
+                p.x *= 50;
+                p.y *= 50;
+                place(p.x + 3, p.y + 3);
+            }
         }
     }
 }

@@ -7,6 +7,8 @@ import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferStrategy;
 
 import assets.Assets;
@@ -91,6 +93,14 @@ public class Game implements Runnable {
             @Override
             public void mouseClicked(MouseEvent e) {
                 State.getState().handleClick(e);
+            }
+        });
+        
+        display.getCanvas().addMouseWheelListener(new MouseWheelListener() {
+            
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                State.getState().handleScroll(e);
             }
         });
         menuState = new MenuState(display.getCanvas());

@@ -41,6 +41,8 @@ public abstract class Tile extends Component {
     
     private static SpriteSheet tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
     
+    protected boolean unstuck;
+    
     /**
      * Constructs a new Tile with the given states
      * @param texture the texture for the display of this tile (Must be 50x50 pixels)
@@ -95,7 +97,7 @@ public abstract class Tile extends Component {
             if(neighbors[BOTTOM] == null) {
                 if(checkSide(LEFT, stickiness)) {
                     return false;
-                } 
+                }
                 if(checkSide(RIGHT, stickiness)) {
                     return false;
                 }
@@ -119,6 +121,7 @@ public abstract class Tile extends Component {
             }
             if(neighbors[direction] != null)
                 return neighbors[direction].checkSide(direction, stickFactor - 1);
+            return false;
         }
         return true;
     }
@@ -224,10 +227,6 @@ public abstract class Tile extends Component {
             // TODO Auto-generated method stub
             return null;
         }
-        @Override
-        public boolean willFall() {
-            return super.willFall();
-        }
     }
     
     public static class GrassTile extends Tile {
@@ -254,7 +253,7 @@ public abstract class Tile extends Component {
     
     public static class StoneTile extends Tile {
         public StoneTile() {
-            super(tileSheet.getSprite(2, 0), true, 2, true, -1, 6);
+            super(tileSheet.getSprite(2, 0), true, 1, true, -1, 6);
         }
 
         /* (non-Javadoc)
@@ -272,6 +271,10 @@ public abstract class Tile extends Component {
         @Override
         public Item getItem() {
             return new Item.StoneItem(x, y);
+        }
+        @Override
+        public boolean willFall() {
+            return super.willFall();
         }
     }
 }

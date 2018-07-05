@@ -17,6 +17,7 @@ import view.SpriteSheet;
 public abstract class Item extends ClickableComponent {
     private int speed;
     private double direction;
+    
     /**
      * @param texture
      */
@@ -54,6 +55,8 @@ public abstract class Item extends ClickableComponent {
         
     }
     
+    public abstract Tile getTile();
+    
     @Override
     public void render(Graphics g) {
         super.render(g);
@@ -76,6 +79,14 @@ public abstract class Item extends ClickableComponent {
         public MudItem(int x, int y) {
             super(mudSheet, x, y);
         }
+
+        /* (non-Javadoc)
+         * @see component.Item#getTile()
+         */
+        @Override
+        public Tile getTile() {
+            return new Tile.GrassTile();
+        }
     }
     
     public static class StoneItem extends Item {
@@ -89,5 +100,13 @@ public abstract class Item extends ClickableComponent {
         }
 
         private static final SpriteSheet stoneSheet = new SpriteSheet(44, 44, Loader.loadTexture("/textures/item/cobblestone_item_sheet.png"));
+
+        /* (non-Javadoc)
+         * @see component.Item#getTile()
+         */
+        @Override
+        public Tile getTile() {
+            return new Tile.StoneTile();
+        }
     }
 }

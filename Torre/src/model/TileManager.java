@@ -52,17 +52,25 @@ public class TileManager extends Component {
                         home.grid[i][j] = null;
                         if(j < TILE_GRID_HEIGHT - 2)
                             home.grid[i][j + 1] = t;
+                        home.link(i, j);
                         home.link(i, j+ 1);
+                        break;
                     }
                 }
             }
         }
     }
     
-    public void handleRightClick(int x, int y) {
-        if(home.grid[x / Tile.LENGTH][y / Tile.LENGTH] != null) {
-            home.grid[x / Tile.LENGTH][y / Tile.LENGTH].onRightClick();
+    public boolean handleRightClick(int x, int y, Tile tile) {
+        Point pL = convertToLocalTileCoords(x, y);
+        Point pA = convertToAbsoluteTileCoords(x, y);
+        if(home.grid[pL.x][pL.y] != null) {
+            home.grid[pL.x][pL.y].onRightClick();
+        } else if(tile != null){
+            home.addTile(tile, pA.x, pA.y);
+            return true;
         }
+        return false;
     }
     
     public Tile getTile(int xPixel, int yPixel) {
@@ -70,8 +78,13 @@ public class TileManager extends Component {
         return home.grid[p.x][p.y];
     }
     
-    private Point convertToLocalTileCoords(int xPixel, int yPixel) {
+    public Point convertToLocalTileCoords(int xPixel, int yPixel) {
         return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
+    }
+    
+    public Point convertToAbsoluteTileCoords(int xPixel, int yPixel) {
+        Point p = convertToLocalTileCoords(xPixel, yPixel);
+        return new Point(p.x + home.x, p.y + home.y);
     }
     
     public Item breakTile(int mouseX, int mouseY) {
@@ -87,6 +100,7 @@ public class TileManager extends Component {
         for(int i = 0; i < TILE_GRID_WIDTH; i++) {
             for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
                 if(home.grid[i][j] != null) {
+                    home.grid[i][j].place(i * 50, j * 50);
                     home.grid[i][j].render(g);
                 }
             }
@@ -132,12 +146,6 @@ public class TileManager extends Component {
                 }
             }
             addTile(new Tile.Crystal(), 0, 0);
-            addTile(new Tile.GrassTile(), 1, 0);
-            addTile(new Tile.GrassTile(), 2, 0);
-            addTile(new Tile.StoneTile(), 3, 0);
-            addTile(new Tile.StoneTile(), 3, -1);
-            addTile(new Tile.StoneTile(), 4, 0);
-            addTile(new Tile.StoneTile(), 4, -1);
         }
         
         /**
@@ -154,14 +162,14 @@ public class TileManager extends Component {
                 if(i < TILE_GRID_WIDTH - 1) {
                     current.setNeighbor(grid[i + 1][j], Tile.RIGHT);
                 }
-                if(j > TILE_GRID_HEIGHT - 1) {
+                if(j < TILE_GRID_HEIGHT - 1) {
                     current.setNeighbor(grid[i][j + 1], Tile.BOTTOM);
                 }
-                if(j < 0) {
+                if(j > 0) {
                     current.setNeighbor(grid[i][j - 1], Tile.TOP);
                 }
             }
-            for(int k = Tile.RIGHT; k < Tile.BOTTOM; k++) {
+            for(int k = Tile.RIGHT; k <= Tile.BOTTOM; k++) {
                 linkHelper(current, k, i, j);
             }
         }
@@ -171,15 +179,19 @@ public class TileManager extends Component {
                 case Tile.LEFT:
                     i -= 1;
                     direction = Tile.RIGHT;
+                    break;
                 case Tile.RIGHT:
                     i += 1;
                     direction = Tile.LEFT;
+                    break;
                 case Tile.BOTTOM:
                     j += 1;
                     direction = Tile.TOP;
+                    break;
                 case Tile.TOP:
                     j -= 1;
                     direction = Tile.BOTTOM;
+                    break;
             }
             if(i >= 0 && j >=0 && i < TILE_GRID_WIDTH && j < TILE_GRID_HEIGHT) {
                 Tile neighbor = grid[i][j];
