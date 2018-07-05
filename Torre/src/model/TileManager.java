@@ -26,6 +26,9 @@ public class TileManager extends Component {
      * on screen at a given time*/
     private TileGrid home;
     
+    private Tile crystal;
+    public int crystalHeight;
+    
     /** The width (in Tiles) of the screen */
     public static final int TILE_GRID_WIDTH = 30;
     /** The width (in Tiles) of the screen */
@@ -38,6 +41,8 @@ public class TileManager extends Component {
     public TileManager() {
         super(null);
         home = new TileGrid(-14, -10);
+        crystal = new Tile.Crystal();
+        crystalHeight = 0;
     }
     
     /**
