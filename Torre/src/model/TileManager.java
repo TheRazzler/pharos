@@ -43,6 +43,7 @@ public class TileManager extends Component {
         home = new TileGrid(-14, -10);
         crystal = new Tile.Crystal();
         crystalHeight = 0;
+        home.addTile(crystal, 0, crystalHeight);
     }
     
     /**
@@ -51,25 +52,56 @@ public class TileManager extends Component {
     public void tick() {
         for(int i = 0; i < TILE_GRID_WIDTH; i++) {
             for(int j = 0; j < TILE_GRID_HEIGHT; j++) {
+                Point p = convertToGlobalTileCoords(new Point(i, j));
                 Tile t = home.grid[i][j];
                 if(t != null) {
                     if(t.willFall()) {
-                        home.grid[i][j] = null;
-                        if(j < TILE_GRID_HEIGHT - 2)
-                            home.grid[i][j + 1] = t;
-                        home.link(i, j);
-                        home.link(i, j+ 1);
+                        if(j < TILE_GRID_HEIGHT - 1) {
+                            if(t == crystal) {
+                                if(p.y != 0) {
+                                    crystalHeight++;
+                                    home.grid[i][j] = null;
+                                    home.grid[i][j + 1] = t;
+                                }
+                            } else {
+                                home.grid[i][j] = null;
+                                home.grid[i][j + 1] = t;
+                            }
+                            home.link(i, j+ 1);
+                            home.link(i, j);
+                        }
                         break;
+                    }
+                    if(t.willCollapse()) {
+                        Game.gameState.spawnItem(breakTile(i * 50, j * 50));
+                    }
+                    if(Math.abs(p.y) > Math.abs(crystalHeight)) {
+                        t.lock();
+                    } else {
+                        t.unlock();
                     }
                 }
             }
         }
     }
     
+    /**
+     * @param point
+     * @return
+     */
+    private Point convertToGlobalTileCoords(Point localTileCoords) {
+        return new Point(localTileCoords.x + home.x, localTileCoords.y + home.y);
+    }
+
     public boolean handleRightClick(int x, int y, Tile tile) {
         Point pL = convertToLocalTileCoords(x, y);
-        Point pA = convertToAbsoluteTileCoords(x, y);
+        Point pA = convertToGlobalTileCoords(x, y);
         if(home.grid[pL.x][pL.y] != null) {
+            if(home.grid[pL.x][pL.y] == crystal && pL.y > 0) {
+                home.addTile(crystal, 0, --crystalHeight);
+                home.addTile(tile, pA.x, pA.y);
+                return true;
+            }
             home.grid[pL.x][pL.y].onRightClick();
         } else if(tile != null){
             home.addTile(tile, pA.x, pA.y);
@@ -87,7 +119,11 @@ public class TileManager extends Component {
         return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
     }
     
-    public Point convertToAbsoluteTileCoords(int xPixel, int yPixel) {
+    public Point convertToLocalTileCoords(Point p) {
+        return new Point(p.x - home.x, p.y - home.y);
+    }
+    
+    public Point convertToGlobalTileCoords(int xPixel, int yPixel) {
         Point p = convertToLocalTileCoords(xPixel, yPixel);
         return new Point(p.x + home.x, p.y + home.y);
     }
@@ -120,6 +156,16 @@ public class TileManager extends Component {
         return new Point[] {new Point(left, top), new Point(right, bottom)};
     }
     
+    public boolean mouseInBounds(Point mousePos) {
+        Point absPos = convertToGlobalTileCoords(mousePos.x, mousePos.y);
+        return Math.abs(absPos.y) <= Math.abs(crystalHeight);
+    }
+    
+    public int[] getVisibleRange() {
+        Point p = convertToLocalTileCoords(new Point(crystalHeight, -crystalHeight));
+        return new int[] {(p.x - 4) * 50, (p.y + 1) * 50};
+    }
+    
     /**
      * A 30x20 grid of Tiles.
      * These are the groups of tiles which will be loaded in memory (i.e. if the user navigates far
@@ -143,14 +189,17 @@ public class TileManager extends Component {
             this.x = x;
             this.y = y;
             grid = new Tile[TILE_GRID_WIDTH][TILE_GRID_HEIGHT];
-            for(int globalX = x; globalX < x + TILE_GRID_WIDTH; globalX++) {
-                for(int globalY = y; globalY < y + TILE_GRID_HEIGHT; globalY++) {
-                    if(globalY > 0) {
-                        addTile(new Tile.LockedTile(), globalX, globalY);
+            for(int i = x; i < x + TILE_GRID_WIDTH; i++) {
+                for(int j = y; j < y + TILE_GRID_HEIGHT; j++) {
+                    if(j == 1) {
+                        addTile(new Tile.GrassTile(), i, j);
+                    } else if(j > 1 && j <= 5) {
+                        addTile(new Tile.DirtTile(), i, j);
+                    } else if(j > 1) {
+                        addTile(new Tile.StoneTile(), i, j);
                     }
                 }
             }
-            addTile(new Tile.Crystal(), 0, 0);
         }
         
         /**
@@ -159,23 +208,25 @@ public class TileManager extends Component {
          * @param j the row (y) of the Tile
          */
         private void link(int i, int j) {
-            Tile current = grid[i][j];
-            if(current != null) {
-                if(i > 0) {
-                    current.setNeighbor(grid[i - 1][j], Tile.LEFT);
+            if(i < TILE_GRID_WIDTH && j < TILE_GRID_HEIGHT) {
+                Tile current = grid[i][j];
+                if(current != null) {
+                    if(i > 0) {
+                        current.setNeighbor(grid[i - 1][j], Tile.LEFT);
+                    }
+                    if(i < TILE_GRID_WIDTH - 1) {
+                        current.setNeighbor(grid[i + 1][j], Tile.RIGHT);
+                    }
+                    if(j < TILE_GRID_HEIGHT - 1) {
+                        current.setNeighbor(grid[i][j + 1], Tile.BOTTOM);
+                    }
+                    if(j > 0) {
+                        current.setNeighbor(grid[i][j - 1], Tile.TOP);
+                    }
                 }
-                if(i < TILE_GRID_WIDTH - 1) {
-                    current.setNeighbor(grid[i + 1][j], Tile.RIGHT);
+                for(int k = Tile.RIGHT; k <= Tile.BOTTOM; k++) {
+                    linkHelper(current, k, i, j);
                 }
-                if(j < TILE_GRID_HEIGHT - 1) {
-                    current.setNeighbor(grid[i][j + 1], Tile.BOTTOM);
-                }
-                if(j > 0) {
-                    current.setNeighbor(grid[i][j - 1], Tile.TOP);
-                }
-            }
-            for(int k = Tile.RIGHT; k <= Tile.BOTTOM; k++) {
-                linkHelper(current, k, i, j);
             }
         }
         

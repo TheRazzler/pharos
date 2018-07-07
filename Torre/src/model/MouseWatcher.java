@@ -63,7 +63,6 @@ public class MouseWatcher {
                 int status = current.c.reactToMouse(mousePos);
                 if(status == ClickableComponent.MOUSE_ON) {
                     activeComponent = current.c;
-                    Debug.println("Mouse on");
                 }
                 current = current.next;
             }

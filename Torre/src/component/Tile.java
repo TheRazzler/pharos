@@ -3,6 +3,7 @@
  */
 package component;
 
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 import model.Debug;
@@ -41,7 +42,13 @@ public abstract class Tile extends Component {
     
     private static SpriteSheet tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
     
-    protected boolean unstuck;
+    private static SpriteSheet lockedSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/locked_tile_sheet.png"));
+    
+    public boolean locked;
+    
+    private BufferedImage lockedTexture;
+    
+    private BufferedImage unlockedTexture;
     
     /**
      * Constructs a new Tile with the given states
@@ -52,7 +59,7 @@ public abstract class Tile extends Component {
      * @param strength How many tiles can be on top of this one before it breaks (-1 if indestructable)
      * @param stickiness How many tiles to either side this one can prevent from falling
      */
-    public Tile(BufferedImage texture, boolean canBreak, double breakTime,
+    public Tile(BufferedImage texture, BufferedImage lockedTexture, boolean canBreak, double breakTime,
             boolean canFall, int strength, int stickiness) {
         super(texture);
         this.canBreak = canBreak;
@@ -61,6 +68,9 @@ public abstract class Tile extends Component {
         this.strength = strength;
         this.stickiness = stickiness;
         neighbors = new Tile[4];
+        lock();
+        this.unlockedTexture = texture;
+        this.lockedTexture = lockedTexture;
     }
     
     /**
@@ -93,7 +103,7 @@ public abstract class Tile extends Component {
      * @return true if this Tile should fall given its state and the state of its neighbors
      */
     public boolean willFall() {
-        if(canFall) {
+        if(canFall && !locked) {
             if(neighbors[BOTTOM] == null) {
                 if(checkSide(LEFT, stickiness)) {
                     return false;
@@ -131,22 +141,22 @@ public abstract class Tile extends Component {
      */
     public boolean willCollapse() {
         if(strength > -1) {
-            return loadGreaterThanStrength(strength);
+            if(load(-1) > strength)
+                return true;
+            return false;
         }
         return false;
     }
     
-    /**
-     * @return true if the number of Tiles above this Tile is greater than its strength
-     */
-    private boolean loadGreaterThanStrength(int strengthFactor) {
-        if(strengthFactor <= 0) {
-            return true;
+    private int load(int direction) {
+        int load = 0;
+        for(int i = RIGHT; i <= LEFT; i++) {
+            if(neighbors[i] != null && i != (direction - 2) % 4) {
+                load += 1;
+                load += neighbors[i].load(i);
+            }
         }
-        if(neighbors[TOP] == null) {
-            return false;
-        }
-        return neighbors[TOP].loadGreaterThanStrength(strengthFactor - 1);
+        return load;
     }
     
     /**
@@ -156,15 +166,6 @@ public abstract class Tile extends Component {
      */
     public Tile getNeighbor(int index) {
         return neighbors[index];
-    }
-    
-    public boolean isAccessible() {
-        for(int i = 0; i < neighbors.length; i++) {
-            if(neighbors[i] == null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -181,32 +182,24 @@ public abstract class Tile extends Component {
         return canBreak;
     }
     
-    /**
-     * The tiles outside the range of the crystal at the top of the tower
-     * Cannot be interacted with, serve as a fog of war
-     * @author Spencer Yoder
-     */
-    public static class LockedTile extends Tile {
-        public LockedTile() {
-            super(tileSheet.getSprite(0, 0), false, -1, false, -1, 0);
-        }
-        @Override
-        public void onRightClick() {
-            //Do nothing
-            Debug.println("LockedTile");
-        }
-        /* (non-Javadoc)
-         * @see component.Tile#getItem()
-         */
-        @Override
-        public Item getItem() {
-            return null;
-        }
+    public void lock() {
+        locked = true;
+        texture = lockedTexture;
+    }
+    
+    public void unlock() {
+        locked = false;
+        texture = unlockedTexture;
+    }
+    
+    @Override
+    public String toString() {
+        return getClass().toString();
     }
     
     public static class Crystal extends Tile {
         public Crystal() {
-            super(null, false, -1, true, -1, 0);
+            super(null, null, false, -1, true, -1, 0);
             animator = new Animator(new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/crystal.png")), 2);
         }
 
@@ -231,7 +224,7 @@ public abstract class Tile extends Component {
     
     public static class GrassTile extends Tile {
         public GrassTile() {
-            super(tileSheet.getSprite(1, 0), true, .5, true, -1, 4);
+            super(tileSheet.getSprite(1, 0), lockedSheet.getSprite(1, 0), true, .5, true, -1, 4);
         }
 
         /* (non-Javadoc)
@@ -253,7 +246,7 @@ public abstract class Tile extends Component {
     
     public static class StoneTile extends Tile {
         public StoneTile() {
-            super(tileSheet.getSprite(2, 0), true, 1, true, -1, 6);
+            super(tileSheet.getSprite(2, 0), lockedSheet.getSprite(2, 0), true, 1, true, -1, 6);
         }
 
         /* (non-Javadoc)
@@ -272,9 +265,73 @@ public abstract class Tile extends Component {
         public Item getItem() {
             return new Item.StoneItem(x, y);
         }
+    }
+    
+    public static class DirtTile extends Tile {
+        public DirtTile() {
+            super(tileSheet.getSprite(3, 0), lockedSheet.getSprite(3, 0), true, .5, true, -1, 4);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
         @Override
-        public boolean willFall() {
-            return super.willFall();
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            return new Item.MudItem(x, y);
+        }
+    }
+    public static class LogTile extends Tile {
+        public LogTile() {
+            super(tileSheet.getSprite(4, 0), lockedSheet.getSprite(4, 0), true, 0.7, true, 10, 3);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            return new Item.ScaffoldItem(x, y);
+        }
+    }
+    
+    public static class ScaffoldTile extends Tile {
+        public ScaffoldTile() {
+            super(tileSheet.getSprite(5, 0), lockedSheet.getSprite(5, 0), true, 0.3, true, 5, 10);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#onRightClick()
+         */
+        @Override
+        public void onRightClick() {
+            // TODO Auto-generated method stub
+            
+        }
+
+        /* (non-Javadoc)
+         * @see component.Tile#getItem()
+         */
+        @Override
+        public Item getItem() {
+            return new Item.ScaffoldItem(x, y);
         }
     }
 }

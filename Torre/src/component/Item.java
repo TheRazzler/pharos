@@ -85,7 +85,7 @@ public abstract class Item extends ClickableComponent {
          */
         @Override
         public Tile getTile() {
-            return new Tile.GrassTile();
+            return new Tile.DirtTile();
         }
     }
     
@@ -107,6 +107,22 @@ public abstract class Item extends ClickableComponent {
         @Override
         public Tile getTile() {
             return new Tile.StoneTile();
+        }
+    }
+    
+    public static class ScaffoldItem extends Item {
+        private static final SpriteSheet scaffoldSheet = new SpriteSheet(44, 44, Loader.loadTexture("/textures/item/scaffold_item_sheet.png"));
+        
+        public ScaffoldItem(int x, int y) {
+            super(scaffoldSheet, x, y);
+        }
+
+        /* (non-Javadoc)
+         * @see component.Item#getTile()
+         */
+        @Override
+        public Tile getTile() {
+            return new Tile.ScaffoldTile();
         }
     }
 }

@@ -34,6 +34,8 @@ public class GameState extends State {
     private Point[] activeTileRange;
     private Hotbar hotbar;
     private PlaceIndicator placeIndicator;
+    private Point mousePos;
+    private WarFog warFog;
 
     /**
      * @param canvas
@@ -48,35 +50,39 @@ public class GameState extends State {
     @Override
     public void tick() {
         mouseWatcher.checkComponents();
-        Point p = canvas.getMousePosition();
-        if(breakIndicator != null && p != null) {
-            breakIndicator.place(p.x - 7, p.y - 7);
-            if(p.x < activeTileRange[0].x || p.x > activeTileRange[1].x || p.y < activeTileRange[0].y ||
-                    p.y > activeTileRange[1].y) {
+        mousePos = canvas.getMousePosition();
+        if(breakIndicator != null && mousePos != null && tileManager.mouseInBounds(mousePos)) {
+            breakIndicator.place(mousePos.x - 7, mousePos.y - 7);
+            if(mousePos.x < activeTileRange[0].x || mousePos.x > activeTileRange[1].x || mousePos.y < activeTileRange[0].y ||
+                    mousePos.y > activeTileRange[1].y) {
                 layerManager.remove(breakIndicator);
-                Tile activeTile = tileManager.getTile(p.x, p.y);
+                Tile activeTile = tileManager.getTile(mousePos.x, mousePos.y);
                 if(activeTile != null && activeTile.canBreak()) {
                     breakIndicator = new BreakIndicator(activeTile.getBreakTime());
                     layerManager.temporaryAdd(breakIndicator, 3);
-                    activeTileRange = tileManager.getActiveRange(p);
+                    activeTileRange = tileManager.getActiveRange(mousePos);
                 } else {
                     breakIndicator = null;
                 }
             }
         }
-        if(breakIndicator != null && p != null) {
+        if(breakIndicator != null && mousePos != null) {
             if(breakIndicator.progress() >= 60) {
-                Item item = tileManager.breakTile(p.x, p.y);
-                if(item != null) {
-                    mouseWatcher.temporaryAdd(item);
-                    layerManager.temporaryAdd(item, 3);
-                }
+                Item item = tileManager.breakTile(mousePos.x, mousePos.y);
+                spawnItem(item);
                 layerManager.remove(breakIndicator);
                 breakIndicator = null;
             }
         }
         tileManager.tick();
         hotbar.tick();
+    }
+    
+    public void spawnItem(Item item) {
+        if(item != null) {
+            mouseWatcher.temporaryAdd(item);
+            layerManager.temporaryAdd(item, 3);
+        }
     }
 
     /* (non-Javadoc)
@@ -93,12 +99,11 @@ public class GameState extends State {
     @Override
     public void handleClick(MouseEvent e) {
         if(SwingUtilities.isRightMouseButton(e)) {
-            Point p = canvas.getMousePosition();
-            if(tileManager.handleRightClick(p.x, p.y, placeIndicator.slot == null ? null : placeIndicator.slot.item.getTile())) {
+            if(tileManager.mouseInBounds(mousePos) && 
+                    tileManager.handleRightClick(mousePos.x, mousePos.y, placeIndicator.slot == null ? null : placeIndicator.slot.item.getTile())) {
                 hotbar.slots[hotbar.index].amount--;
             }
         } else if(SwingUtilities.isLeftMouseButton(e)) {
-            Debug.println("Screen clicked");
             mouseWatcher.handleClick();
         }
     }
@@ -123,6 +128,15 @@ public class GameState extends State {
         hotbar.slots[0].amount = 100;
         hotbar.slots[1] = new InventorySlot(new Item.StoneItem(0, 0));
         hotbar.slots[1].amount = 100;
+        
+        hotbar.slots[2] = new InventorySlot(new Item.ScaffoldItem(0, 0));
+        hotbar.slots[2].amount = 100;
+        if(hotbar.slots[hotbar.index] != null) {
+            placeIndicator.setInventorySlot(hotbar.slots[hotbar.index]);
+        }
+        
+        warFog = new WarFog();
+        layerManager.addComponent(warFog, 4);
     }
 
     /* (non-Javadoc)
@@ -138,7 +152,7 @@ public class GameState extends State {
      */
     @Override
     public void handlePress(MouseEvent e) {
-        if(SwingUtilities.isLeftMouseButton(e)) {
+        if(SwingUtilities.isLeftMouseButton(e) && tileManager.mouseInBounds(mousePos)) {
             Point p = canvas.getMousePosition();
             activeTileRange = tileManager.getActiveRange(p);
             Tile t = tileManager.getTile(p.x, p.y);
@@ -316,6 +330,24 @@ public class GameState extends State {
                 p.y *= 50;
                 place(p.x + 3, p.y + 3);
             }
+        }
+    }
+    
+    private class WarFog extends Component {
+        private SpriteSheet edges;
+        private WarFog() {
+            super(null);
+            edges = new SpriteSheet(1500, 150, Loader.loadTexture("/textures/fog_edges.png"));
+        }
+        
+        @Override
+        public void render(Graphics g) {
+            g.setColor(Color.BLACK);
+            int[] heights = tileManager.getVisibleRange();
+            g.drawImage(edges.getSprite(0, 0), 0, heights[0] - 150, null);
+            g.fillRect(0, 0, canvas.getWidth(), heights[0] - 150);
+            g.drawImage(edges.getSprite(0, 1), 0, heights[1], null);
+            g.fillRect(0, heights[1] + 150, canvas.getWidth(), canvas.getHeight() - heights[1]);
         }
     }
 }
