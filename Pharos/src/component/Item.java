@@ -60,7 +60,9 @@ public abstract class Item extends ClickableComponent {
         if(speed > 0) {
             int dx = (int) (Math.cos(direction) * speed);
             int dy = (int) (Math.sin(direction) * speed);
-            place(x + dx, y + dy);
+            int realX = x + dx > Game.width - Tile.LENGTH || x + dx < 0 ? x : x + dx;
+            int realY = y + dy > Game.height - Tile.LENGTH || y + dy < 0 ? y : y + dy;
+            place(realX, realY);
             speed--;
         }
     }

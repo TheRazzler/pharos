@@ -28,7 +28,7 @@ public class Game implements Runnable {
     /** The {@link view.Display} for the game*/
     private Display display;
     /** The width and height of the display window */
-    public int width, height;
+    public static int width, height;
     /** The title for the Display */
     public String title;
     /** The separate Thread on which this game runs */
