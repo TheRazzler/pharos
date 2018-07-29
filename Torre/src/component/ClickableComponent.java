@@ -23,7 +23,8 @@ public abstract class ClickableComponent extends Component implements Comparable
     public Bound bound;
     /** Whether or not the mouse is currently over the Component */
     public boolean mouseOver = false;
-    
+    /** The index of this Component in a helper List inside of the {@link model.MouseWatcher} class
+     *  (For use in removal from the list) */
     protected int mouseIndex;
     
     /** @see component.Component#Component(BufferedImage) */
@@ -85,6 +86,9 @@ public abstract class ClickableComponent extends Component implements Comparable
         bound = new Bound(new Point(x, y), new Point(x + width - 1, y + height - 1));
     }
     
+    /**
+     * @return the mouseIndex
+     */
     public int getMouseIndex() {
         return mouseIndex;
     }
@@ -94,9 +98,15 @@ public abstract class ClickableComponent extends Component implements Comparable
     }
     
     /** The code that gets run when the component is moused over */
-    public abstract void onMouseOver();
+    public void onMouseOver() {
+        //Override this method with behavior, otherwise, this method does nothing
+    }
     /** The code that gets run when the mouse stops hovering over the component */
-    public abstract void onMouseLeave();
+    public void onMouseLeave() {
+      //Override this method with behavior, otherwise, this method does nothing
+    }
     /** The code that gets run when the component is clicked */
-    public abstract void onClick();
+    public void onClick() {
+      //Override this method with behavior, otherwise, this method does nothing
+    }
 }

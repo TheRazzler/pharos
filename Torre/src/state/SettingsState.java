@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 
 /**
  * A State which handles the game settings
+ * <b>NOT IMPLEMENTED</b>
  * @author Spencer Yoder
  */
 public class SettingsState extends State {

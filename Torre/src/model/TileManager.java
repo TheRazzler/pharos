@@ -35,14 +35,19 @@ public class TileManager extends Component {
     public static final int TILE_GRID_HEIGHT = 20;
     
     /**
-     * Constructs a new TileManager which draws to the given LayerManager
-     * @param layerManager the LayerManager
+     * Constructs a new TileManager
      */
     public TileManager() {
         super(null);
         home = new TileGrid(-14, -10);
         crystal = new Tile.Crystal();
-        crystalHeight = 0;
+        crystalHeight = -5;
+        for(int i = 0; i > crystalHeight; i--) {
+            home.addTile(new Tile.DirtTile(), 0, i);
+        }
+        for(int i = 0; i > -5; i--) {
+            home.addTile(new Tile.ScaffoldTile(), 3, i);
+        }
         home.addTile(crystal, 0, crystalHeight);
     }
     
@@ -86,13 +91,20 @@ public class TileManager extends Component {
     }
     
     /**
-     * @param point
-     * @return
+     * @return the given point in local tile coordinates converted to global tile coordinates
+     * (where the crystal starts at (0, 0))
      */
     private Point convertToGlobalTileCoords(Point localTileCoords) {
         return new Point(localTileCoords.x + home.x, localTileCoords.y + home.y);
     }
-
+    
+    /**
+     * Places a tile if the conditions are correct
+     * @param x the x location of the mouse in pixels
+     * @param y the y location of the mouse in pixels
+     * @param tile the Tile to place
+     * @return true if the Tile is placed correctly
+     */
     public boolean handleRightClick(int x, int y, Tile tile) {
         Point pL = convertToLocalTileCoords(x, y);
         Point pA = convertToGlobalTileCoords(x, y);
@@ -110,24 +122,42 @@ public class TileManager extends Component {
         return false;
     }
     
+    /**
+     * @return the Tile at the given x and y coordinates (in pixels)
+     */
     public Tile getTile(int xPixel, int yPixel) {
         Point p = convertToLocalTileCoords(xPixel, yPixel);
         return home.grid[p.x][p.y];
     }
     
+    /**
+     * @return the given x and y coordinates (in pixels) converted to local Tile coordinates
+     */
     public Point convertToLocalTileCoords(int xPixel, int yPixel) {
         return new Point(xPixel / Tile.LENGTH, yPixel / Tile.LENGTH);
     }
     
+    /**
+     * @return the given Point which is in global coordinates converted to local tile coordinates
+     */
     public Point convertToLocalTileCoords(Point p) {
         return new Point(p.x - home.x, p.y - home.y);
     }
     
+    /**
+     * @return the given x and y coordinates (in pixels) converted to global Tile coordinates
+     */
     public Point convertToGlobalTileCoords(int xPixel, int yPixel) {
         Point p = convertToLocalTileCoords(xPixel, yPixel);
         return new Point(p.x + home.x, p.y + home.y);
     }
     
+    /**
+     * Breaks the Tile at the given x and y pixel coordinates
+     * @param mouseX the given x
+     * @param mouseY the given y
+     * @return the Item the Tile drops when broken
+     */
     public Item breakTile(int mouseX, int mouseY) {
         Point p = convertToLocalTileCoords(mouseX, mouseY);
         Item item = home.grid[p.x][p.y].getItem();
@@ -136,6 +166,9 @@ public class TileManager extends Component {
         return item;
     }
     
+    /**
+     * Draws all Tiles to the screen
+     */
     @Override
     public void render(Graphics g) {
         for(int i = 0; i < TILE_GRID_WIDTH; i++) {
@@ -148,6 +181,11 @@ public class TileManager extends Component {
         }
     }
     
+    /**
+     * @param mouseP the position of the mouse
+     * @return the corners of the Tile the mouse currently occupies
+     * @see state.GameState#tick()
+     */
     public Point[] getActiveRange(Point mouseP) {
         int left = (int) (Math.floor(mouseP.x / 50.0) * 50);
         int right = (int) (Math.ceil(mouseP.x / 50.0) * 50);
@@ -156,11 +194,18 @@ public class TileManager extends Component {
         return new Point[] {new Point(left, top), new Point(right, bottom)};
     }
     
+    /**
+     * @param mousePos the position of the mouse in pixels
+     * @return true if the mouse is inside the bounds set by the crystal.
+     */
     public boolean mouseInBounds(Point mousePos) {
         Point absPos = convertToGlobalTileCoords(mousePos.x, mousePos.y);
         return Math.abs(absPos.y) <= Math.abs(crystalHeight);
     }
     
+    /**
+     * @return the range at which to start drawing the fog of war
+     */
     public int[] getVisibleRange() {
         Point p = convertToLocalTileCoords(new Point(crystalHeight, -crystalHeight));
         return new int[] {(p.x - 4) * 50, (p.y + 1) * 50};
@@ -230,6 +275,15 @@ public class TileManager extends Component {
             }
         }
         
+        /**
+         * A helper method for {@link model.TileManager.TileGrid#link(int, int)}
+         * The former links a tile to the tiles around it, this links the other way around
+         * Very useful if the Tile is null
+         * @param current the Tile to link
+         * @param direction the direction to link
+         * @param i the x position of the Tile in local coordinates
+         * @param j the y position of the Tile in local coordinate
+         */
         private void linkHelper(Tile current, int direction, int i, int j) {
             switch (direction) {
                 case Tile.LEFT:
@@ -256,6 +310,12 @@ public class TileManager extends Component {
             }
         }
         
+        /**
+         * Adds the Tile to the grid and screen, and links and places it
+         * @param t the given Tile
+         * @param x the x position of the tile in pixels
+         * @param y the y position of the tile in pixels
+         */
         private void addTile(Tile t, int x, int y) {
             int i = x - this.x;
             int j = y - this.y;

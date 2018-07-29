@@ -69,7 +69,7 @@ public class MenuState extends State {
     }
     
     /**
-     * @see state.State#handleClick()
+     * @see state.State#handleClick(MouseEvent)
      */
     @Override 
     public void handleClick(MouseEvent e) {

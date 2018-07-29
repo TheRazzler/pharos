@@ -28,23 +28,31 @@ import view.SpriteSheet;
  * @author Spencer Yoder
  */
 public class GameState extends State {
+    /** See {@link model.TileManager} */
     private TileManager tileManager;
+    /** The background for the GameState */
     private Component background;
+    /** See {@link state.GameState.BreakIndicator} */
     private BreakIndicator breakIndicator;
+    /** The range (in pixels) of the Tile that contains the mouse pointer */
     private Point[] activeTileRange;
+    /** See {@link state.GameState.Hotbar} */
     private Hotbar hotbar;
+    /** See {@link state.GameState.PlaceIndicator} */
     private PlaceIndicator placeIndicator;
+    /** The position of the mouse (null if the mouse is not on screen) */
     private Point mousePos;
+    /** See {@link state.GameState.WarFog} */
     private WarFog warFog;
 
     /**
-     * @param canvas
+     * @see state.State#State(Canvas)
      */
     public GameState(Canvas canvas) {
         super(canvas);
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#tick()
      */
     @Override
@@ -78,6 +86,10 @@ public class GameState extends State {
         hotbar.tick();
     }
     
+    /**
+     * Spawns the given Item and draws it to the screen
+     * @param item the given Item
+     */
     public void spawnItem(Item item) {
         if(item != null) {
             mouseWatcher.temporaryAdd(item);
@@ -85,16 +97,19 @@ public class GameState extends State {
         }
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#render(java.awt.Graphics)
+     * @see view.LayerManager#render(Graphics)
      */
     @Override
     public void render(Graphics g) {
         layerManager.render(g);
     }
 
-    /* (non-Javadoc)
-     * @see state.State#handleClick()
+    /**
+     * @see state.State#handleClick(MouseEvent)
+     * @see model.TileManager#handleRightClick(int, int, Tile)
+     * @see model.MouseWatcher#handleClick()
      */
     @Override
     public void handleClick(MouseEvent e) {
@@ -108,7 +123,7 @@ public class GameState extends State {
         }
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#load()
      */
     @Override
@@ -139,15 +154,16 @@ public class GameState extends State {
         layerManager.addComponent(warFog, 4);
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#unload()
      */
     @Override
     protected void unload() {
+        //TODO incomplete
         tileManager = null;
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#handlePress(java.awt.event.MouseEvent)
      */
     @Override
@@ -163,28 +179,49 @@ public class GameState extends State {
         }
     }
     
+    /**
+     * @see state.GameState.Hotbar#changeSelection(int)
+     */
     @Override
     public void handleScroll(MouseWheelEvent e) {
         hotbar.changeSelection(e.getWheelRotation());
         placeIndicator.setInventorySlot(hotbar.slots[hotbar.index]);
     }
     
+    /**
+     * Informs the user of the status of the current tile to be broken
+     * Displays a little wheel at the mouse cursor that fills. When the wheel is full, the Tile breaks.
+     * The indicator fills at a rate identical to the Tile break time.
+     * When the user mouses off the current Tile, the indicator resets.
+     * @author Spencer Yoder
+     */
     private static class BreakIndicator extends Component {
+        /** Starts at 0, at 1, the Tile breaks */
         private double progress;
+        /** See {@link component.Tile#breakTime} */
         private double breakTime;
+        /**
+         * Constructs a new BreakIndicator from the given breakTime
+         * @param breakTime See {@link component.Tile#breakTime}
+         */
         private BreakIndicator(double breakTime) {
             super(null);
             this.breakTime = breakTime;
             progress = 0;
             animator = new Animator(new SpriteSheet(15, 15, Loader.loadTexture("/textures/break_indicator.png")), breakTime);
         }
+        
+        /**
+         * Progress the wheel by 1 / breakTime (This works because the game ticks at 60 fps)
+         * @return the current progress
+         */
         private double progress() {
             progress += (1 / breakTime);
             return progress;
         }
     }
 
-    /* (non-Javadoc)
+    /**
      * @see state.State#handleRelease(java.awt.event.MouseEvent)
      */
     @Override
@@ -198,9 +235,11 @@ public class GameState extends State {
     }
 
     /**
-     * @param item
+     * Handles the collection of the given item
+     * @param item the given item
+     * @see state.GameState.Hotbar#addItem(Item)
      */
-    public void handleItemClick(Item item) {
+    public void handleItemCollect(Item item) {
         if(item != null) {
             layerManager.remove(item);
             mouseWatcher.remove(item);
@@ -208,18 +247,35 @@ public class GameState extends State {
         }
     }
     
+    /**
+     * A class for the hotbar which stores Items that the user can place.
+     * It is displayed at the bottom of the screen and will later interact with the inventory
+     * @author Spencer Yoder
+     */
     private class Hotbar extends Component {
+        /** The array of {@link state.GameState.InventorySlot}s */
         private InventorySlot[] slots;
+        /** The index of current slot the user has selected */
         private int index;
+        /** See {@link state.GameState.Hotbar.Selection} */
         private Selection selection;
         
+        /**
+         * Constructs a new Hotbar
+         */
         private Hotbar() {
             super(Loader.loadTexture("/textures/hotbar.png"));
             slots = new InventorySlot[8];
             selection = new Selection();
         }
         
-        public boolean addItem(Item item) {
+        /**
+         * Adds the given Item to the Hotbar.
+         * If the item already has a slot in the Hotbar, that slot gets incremented, otherwise, 
+         * the item is placed in the first empty slot from the left
+         * @param item the given Item
+         */
+        public void addItem(Item item) {
             int idx = -1;
             boolean found = false;
             for(int i = 0; i < slots.length; i++) {
@@ -239,15 +295,19 @@ public class GameState extends State {
                     placeIndicator.setInventorySlot(slots[idx]);
                 }
             }
-            return found;
         }
         
+        /**
+         * Increment the selection by the given amount
+         * @param i the given amount
+         */
         public void changeSelection(int i) {
             index = (index + i) % 8;
             if(index < 0)
                 index = 7;
         }
         
+        /***/
         @Override
         public void render(Graphics g) {
             super.render(g);
@@ -261,6 +321,9 @@ public class GameState extends State {
             selection.render(g);
         }
         
+        /**
+         * Calculate the state of the Hotbar
+         */
         public void tick() {
             for(int i = 0; i < slots.length; i++) {
                 if(slots[i] != null && slots[i].amount == 0) {
@@ -272,6 +335,10 @@ public class GameState extends State {
             }
         }
         
+        /**
+         * Indicates which slot of the Hotbar is selected
+         * @author Spencer Yoder
+         */
         private class Selection extends Component {
             private Selection() {
                 super(Loader.loadTexture("/textures/selection.png"));
@@ -279,10 +346,20 @@ public class GameState extends State {
         }
     }
     
+    /**
+     * A class for holding one or many Items in the Hotbar
+     * @author Spencer Yoder
+     */
     private class InventorySlot extends Component {
+        /** The number of Items in the slot */
         private int amount;
+        /** The type of Item being held in the slot */
         private Item item;
         
+        /**
+         * Construct a new Inventory slot with the given Item
+         * @param i the given Item
+         */
         private InventorySlot(Item i) {
             super(null);
             animator = i.getAnimator();
@@ -290,6 +367,7 @@ public class GameState extends State {
             item = i;
         }
         
+        /***/
         @Override
         public void render(Graphics g) {
             super.render(g);
@@ -300,14 +378,27 @@ public class GameState extends State {
         }
     }
     
+    /**
+     * Shows an Item texture at the cursor's position which indicates the item that will be placed 
+     * @author Spencer Yoder
+     */
     private class PlaceIndicator extends Component {
+        /** The slot from which the item will be taken */
         private InventorySlot slot;
         
+        /**
+         * Constructs a new PlaceIndicator with the given InventorySlot
+         * @param slot the given InventorySlot
+         */
         public PlaceIndicator(InventorySlot  slot) {
             super(null);
             setInventorySlot(slot);
         }
         
+        /**
+         * Sets the InventorySlot to the given InvetorySlot
+         * @param slot the given InventorySlot
+         */
         private void setInventorySlot(InventorySlot slot) {
             if(this.slot == null || slot == null || slot.item.getClass() != this.slot.item.getClass()) {
                 if(slot != null)
@@ -320,6 +411,7 @@ public class GameState extends State {
             }
         }
         
+        /***/
         @Override
         public void render(Graphics g) {
             super.render(g);
@@ -333,13 +425,23 @@ public class GameState extends State {
         }
     }
     
+    /**
+     * Indicates which parts of the screen cannot be edited due to the tower
+     * @author Spencer Yoder
+     */
     private class WarFog extends Component {
+        /** The faded edges of the WarFog */
         private SpriteSheet edges;
+        
+        /**
+         * Constructs a new WarFog
+         */
         private WarFog() {
             super(null);
             edges = new SpriteSheet(1500, 150, Loader.loadTexture("/textures/fog_edges.png"));
         }
         
+        /***/
         @Override
         public void render(Graphics g) {
             g.setColor(Color.BLACK);

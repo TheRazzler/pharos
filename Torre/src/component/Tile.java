@@ -3,15 +3,17 @@
  */
 package component;
 
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.util.Hashtable;
+import java.util.LinkedList;
 
-import model.Debug;
 import model.Loader;
 import view.SpriteSheet;
 
 /**
  * A class representing a Tile drawn on the screen.
+ * A Tile can be broken and placed by the mouse, can collapse due to the load of supporting other Tiles,
+ * and can hold Tiles which are "stuck" to it on the left and right up to a certain distance.
  * @author Spencer Yoder
  */
 public abstract class Tile extends Component {
@@ -23,7 +25,7 @@ public abstract class Tile extends Component {
     public static final int LEFT = 2;
     /** The index in the neighbors array of the Tile below this one */
     public static final int BOTTOM = 3;
-    
+    /** The height and width of a Tile */
     public static final int LENGTH = 50;
     
     /** Whether or not the user can break this Tile */
@@ -39,15 +41,15 @@ public abstract class Tile extends Component {
     protected int strength;
     /** How many tiles this one can hold in place to prevent falling */
     protected int stickiness;
-    
+    /** The SpriteSheet of textures for tiles that are editable (in the range of the tower) */
     private static SpriteSheet tileSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/tile_sheet.png"));
-    
+    /** The SpriteSheet of textures for tiles that are not editable */
     private static SpriteSheet lockedSheet = new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/locked_tile_sheet.png"));
-    
+    /** Whether or not the Tile is in the range of the tower and is editable */
     public boolean locked;
-    
+    /** The texture for this Tile when it is locked */
     private BufferedImage lockedTexture;
-    
+    /** The texture for this Tile when it is unlocked */
     private BufferedImage unlockedTexture;
     
     /**
@@ -76,7 +78,9 @@ public abstract class Tile extends Component {
     /**
      * The behavior of this tile when it is right clicked
      */
-    public abstract void onRightClick();
+    public void onRightClick() {
+        //Override if behavior exists, otherwise, this method does nothing
+    }
     
     public abstract Item getItem();
     
@@ -119,7 +123,7 @@ public abstract class Tile extends Component {
     }
     
     /**
-     * Checks the side of this Tile to see if it has enough Tiles to its one seide keeping it from falling
+     * Checks the side of this Tile to see if it has enough Tiles to its one side keeping it from falling
      * @param direction {@link component.Tile#RIGHT} or {@link component.Tile#LEFT}, 
      * @param stickFactor How many tiles before this one will fall
      * @return true if this Tile is secure
@@ -137,26 +141,44 @@ public abstract class Tile extends Component {
     }
     
     /**
-     * @return true if this Tile will collapse given the number of Tiles above it
+     * @return true if this Tile will collapse given the number of Tiles it is supporting
      */
     public boolean willCollapse() {
-        if(strength > -1) {
-            if(load(-1) > strength)
-                return true;
+        if(!canCollapse() || neighbors[BOTTOM] == null || neighbors[BOTTOM].canCollapse())
             return false;
-        }
+        if(weight() > strength)
+            return true;
         return false;
     }
     
-    private int load(int direction) {
-        int load = 0;
-        for(int i = RIGHT; i <= LEFT; i++) {
-            if(neighbors[i] != null && i != (direction - 2) % 4) {
-                load += 1;
-                load += neighbors[i].load(i);
+    /**
+     * @return the number of Tiles this one is supporting
+     */
+    private int weight() {
+        Hashtable<Tile, Tile> table = new Hashtable<Tile, Tile>();
+        LinkedList<Tile> queue = new LinkedList<Tile>();
+        queue.add(neighbors[TOP]);
+        int weight = 0;
+        if(neighbors[TOP] == null)
+            return 0;
+        do {
+            Tile current = queue.remove();
+            weight++;
+            if(weight > strength)
+                return weight;
+            for(int i = RIGHT; i < BOTTOM; i++) {
+                Tile neighbor = current.neighbors[i];
+                if(neighbor != null && !table.contains(neighbor))
+                    if(i == TOP || neighbor.neighbors[BOTTOM] == null)
+                        queue.add(neighbor);
             }
-        }
-        return load;
+            table.put(current, current);
+        } while(!queue.isEmpty());
+        return weight;
+    }
+
+    public boolean canCollapse() {
+        return strength > -1;
     }
     
     /**
@@ -169,73 +191,87 @@ public abstract class Tile extends Component {
     }
 
     /**
-     * @return
+     * @return The amount of time (in seconds) it takes this tile to be broken by the mouse
      */
     public double getBreakTime() {
         return breakTime;
     }
 
     /**
-     * @return
+     * @return whether or not this Tile can be broken by the mouse
      */
     public boolean canBreak() {
         return canBreak;
     }
     
+    /**
+     * This tile can no longer be interacted with by the mouse
+     */
     public void lock() {
         locked = true;
         texture = lockedTexture;
     }
     
+    /**
+     * This Tile can now be interacted with by the mouse
+     */
     public void unlock() {
         locked = false;
         texture = unlockedTexture;
     }
     
+    /**
+     * @return a String representation of this Tile for use in debugging
+     */
     @Override
     public String toString() {
         return getClass().toString();
     }
     
+    /**
+     * For use in the Hashtable used by {@link component.Tile#weight()}
+     */
+    @Override
+    public int hashCode() {
+        return Integer.hashCode((x + y) * y * x);
+    }
+    
+    /**
+     * A class for the Crystal at the top of the tower
+     * @author Spencer Yoder
+     */
     public static class Crystal extends Tile {
+        /**
+         * See {@link component.Tile#Tile(BufferedImage, BufferedImage, boolean, double, boolean, int, int)}
+         */
         public Crystal() {
             super(null, null, false, -1, true, -1, 0);
             animator = new Animator(new SpriteSheet(50, 50, Loader.loadTexture("/textures/tiles/crystal.png")), 2);
         }
-
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
-        }
-
-        /* (non-Javadoc)
+        
+        /**
          * @see component.Tile#getItem()
          */
         @Override
         public Item getItem() {
-            // TODO Auto-generated method stub
             return null;
         }
     }
     
+    /**
+     * A class for grass. Grass cannot collapse and gives a {@link component.Item.MudItem} when broken.
+     * Grass can fall and appears at the very top of the ground.
+     * @author Spencer Yoder
+     */
     public static class GrassTile extends Tile {
+        /**
+         * See {@link component.Tile#Tile(BufferedImage, BufferedImage, boolean, double, boolean, int, int)}
+         */
         public GrassTile() {
             super(tileSheet.getSprite(1, 0), lockedSheet.getSprite(1, 0), true, .5, true, -1, 4);
         }
 
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            
-        }
-
-        /* (non-Javadoc)
+        /**
          * @see component.Tile#getItem()
          */
         @Override
@@ -244,21 +280,20 @@ public abstract class Tile extends Component {
         }
     }
     
+    /**
+     * A class for stone. Stone appears under dirt and has the same properties as dirt and grass
+     * with a longer break time.
+     * @author Spencer Yoder
+     */
     public static class StoneTile extends Tile {
+        /**
+         * See {@link component.Tile#Tile(BufferedImage, BufferedImage, boolean, double, boolean, int, int)}
+         */
         public StoneTile() {
             super(tileSheet.getSprite(2, 0), lockedSheet.getSprite(2, 0), true, 1, true, -1, 6);
         }
 
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
-        }
-
-        /* (non-Javadoc)
+        /**
          * @see component.Tile#getItem()
          */
         @Override
@@ -267,18 +302,13 @@ public abstract class Tile extends Component {
         }
     }
     
+    /**
+     * A class for dirt. Dirt appears below grass and has the same properties.
+     * @author Spencer Yoder
+     */
     public static class DirtTile extends Tile {
         public DirtTile() {
             super(tileSheet.getSprite(3, 0), lockedSheet.getSprite(3, 0), true, .5, true, -1, 4);
-        }
-
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
         }
 
         /* (non-Javadoc)
@@ -289,21 +319,21 @@ public abstract class Tile extends Component {
             return new Item.MudItem(x, y);
         }
     }
+    
+    /**
+     * A class for logs. Meant to emulate Minecraft and similar games wherein logs of trees
+     * are broken and yield wood for crafting
+     * @author Spencer Yoder
+     */
     public static class LogTile extends Tile {
+        /**
+         * See {@link component.Tile#Tile(BufferedImage, BufferedImage, boolean, double, boolean, int, int)}
+         */
         public LogTile() {
             super(tileSheet.getSprite(4, 0), lockedSheet.getSprite(4, 0), true, 0.7, true, 10, 3);
         }
 
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
-         */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
-        }
-
-        /* (non-Javadoc)
+        /**
          * @see component.Tile#getItem()
          */
         @Override
@@ -312,21 +342,19 @@ public abstract class Tile extends Component {
         }
     }
     
+    /**
+     * As of now, the only Tile that can collapse under the weight of other tiles
+     * @author Spencer Yoder
+     */
     public static class ScaffoldTile extends Tile {
-        public ScaffoldTile() {
-            super(tileSheet.getSprite(5, 0), lockedSheet.getSprite(5, 0), true, 0.3, true, 5, 10);
-        }
-
-        /* (non-Javadoc)
-         * @see component.Tile#onRightClick()
+        /**
+         * See {@link component.Tile#Tile(BufferedImage, BufferedImage, boolean, double, boolean, int, int)}
          */
-        @Override
-        public void onRightClick() {
-            // TODO Auto-generated method stub
-            
+        public ScaffoldTile() {
+            super(tileSheet.getSprite(5, 0), lockedSheet.getSprite(5, 0), true, 0.3, true, 3, 10);
         }
 
-        /* (non-Javadoc)
+        /**
          * @see component.Tile#getItem()
          */
         @Override

@@ -20,10 +20,14 @@ public abstract class Component {
     public int width;
     /** The height of the component */
     public int height;
-    /** The visual appearance of the component */
+    /** The visual appearance of the component (constructed as null if this Component is animated)*/
     public BufferedImage texture;
+    /** The layer on which this component is displayed */
     public int layer;
+    /** The index of this Component in a helper List inside of the {@link view.LayerManager} class
+     *  (For use in removal from the list) */
     protected int layerIndex;
+    /** The {@link component.Animator} for this class (null if this class has no Animator) */
     protected Animator animator;
     
     /**
@@ -68,10 +72,16 @@ public abstract class Component {
         this.layer = layer;
     }
     
+    /**
+     * @param layerIndex The layerIndex to set
+     */
     public void setLayerIndex(int layerIndex) {
         this.layerIndex = layerIndex;
     }
     
+    /**
+     * @return the layerIndex
+     */
     public int getLayerIndex() {
         return layerIndex;
     }
@@ -88,11 +98,17 @@ public abstract class Component {
         }
     }
     
+    /**
+     * @return a String representation of this Component for debugging
+     */
     @Override
     public String toString() {
         return "layer: " + layer + " layerIndex: " + layerIndex;
     }
     
+    /**
+     * @return the Animator
+     */
     public Animator getAnimator() {
         return animator;
     }

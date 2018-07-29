@@ -36,7 +36,7 @@ public class SpriteSheet {
     }
     
     /**
-     * @param horizIDX the horizontal position (in sprites, not pixels) of the texture
+     * @param horizIdx the horizontal position (in sprites, not pixels) of the texture
      * @param vertIdx the vertical position (in sprites, not pixels) of the texture
      * @return a single texture from the sprite sheet
      */

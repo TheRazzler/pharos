@@ -17,6 +17,7 @@ import model.Debug;
 public class LayerManager {
     /** The front of the LinkedList of Components */
     private Node head;
+    /** A list to assist in the quick removal of Components */
     private ArrayList<Node> tempList;
     
     /**
@@ -37,6 +38,10 @@ public class LayerManager {
         addNode(new Node(c));
     }
     
+    /**
+     * Adds the Node to the linked list
+     * @param n the given Node
+     */
     private void addNode(Node n) {
         if(head == null) {
             head = n;
@@ -57,6 +62,11 @@ public class LayerManager {
         }
     }
     
+    /**
+     * Adds a Component which will later be removed
+     * @param c the given Component
+     * @param layer the layer of the Component
+     */
     public void temporaryAdd(Component c, int layer) {
         c.setLayer(layer);
         c.setLayerIndex(tempList.size());
@@ -65,6 +75,10 @@ public class LayerManager {
         tempList.add(n);
     }
     
+    /**
+     * Removes the given Component from the LayerManager
+     * @param c the given Component
+     */
     public void remove(Component c) {
         if(!tempList.isEmpty()) {
             Node n = tempList.remove(c.getLayerIndex());
@@ -121,6 +135,7 @@ public class LayerManager {
         private Node next;
         /** The Component */
         private Component c;
+        /** The previous Node in the List */
         private Node prev;
         
         /**

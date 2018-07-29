@@ -72,9 +72,18 @@ public abstract class State {
     /**
      * The code that is run when the State is clicked on
      */
-    public abstract void handleClick(MouseEvent e);
+    public void handleClick(MouseEvent e) {
+      //Override this method with behavior, otherwise, this method does nothing
+    }
     
-    public abstract void handlePress(MouseEvent e);
+    /**
+     * The code that is run when the state is pressed by the mouse
+     * @param e the mouse press (right or left click, etc.)
+     */
+    public void handlePress(MouseEvent e) {
+      //Override this method with behavior, otherwise, this method does nothing
+    }
+    
     /**
      * Loads all assets associated with the State into memory
      * @see assets.Assets
@@ -87,14 +96,17 @@ public abstract class State {
     protected abstract void unload();
 
     /**
-     * 
+     * The code run when the mouse is released on the current state
      */
-    public abstract void handleRelease(MouseEvent e);
+    public void handleRelease(MouseEvent e) {
+      //Override this method with behavior, otherwise, this method does nothing
+    }
 
     /**
-     * @param e
+     * The code that is run when the State is scrolled over
+     * @param e the MouseWheelEvent (up or down)
      */
     public void handleScroll(MouseWheelEvent e) {
-        //Do nothing by default
+      //Override this method with behavior, otherwise, this method does nothing
     }
 }

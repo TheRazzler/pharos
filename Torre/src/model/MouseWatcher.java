@@ -43,6 +43,10 @@ public class MouseWatcher {
         addNode(new Node(c));
     }
     
+    /**
+     * Adds a Component which will later be removed from the MouseWatcher
+     * @param c the Component to add
+     */
     public void temporaryAdd(ClickableComponent c) {
         c.setMouseIndex(tempList.size());
         Node n = new Node(c);
@@ -114,6 +118,10 @@ public class MouseWatcher {
         }
     }
     
+    /**
+     * Adds a Node to the linked list
+     * @param n the Node to add
+     */
     private void addNode(Node n) {
         if(head == null) {
             head = n;
@@ -134,6 +142,10 @@ public class MouseWatcher {
         }
     }
     
+    /**
+     * Removes a ClickableComponent from the list
+     * @param c the component to remove
+     */
     public void remove(ClickableComponent c) {
         if(!tempList.isEmpty()) {
             Node n = tempList.remove(c.getMouseIndex());

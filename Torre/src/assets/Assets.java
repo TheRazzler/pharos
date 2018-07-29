@@ -115,7 +115,7 @@ public class Assets {
      */
     private static class LightAnimation extends Component {
         /**
-         * @param texture
+         * Constructs a new LightAnimation
          */
         public LightAnimation() {
             super(null);
@@ -170,7 +170,7 @@ public class Assets {
         private BufferedImage lit;
 
         /**
-         * @param texture
+         * Constructs the StartGameButton
          */
         public StartGameButton() {
             super(null);
@@ -178,23 +178,20 @@ public class Assets {
             this.lit = menuButtonSheet.getSprite(0, 1);
             updateTexture(unlit);
         }
-
+        
+        /***/
         @Override
         public void onMouseOver() {
             texture = lit;
         }
 
-        /* (non-Javadoc)
-         * @see component.ClickableComponent#onClick()
-         */
+        /***/
         @Override
         public void onClick() {
             State.setState(Game.gameState);
         }
 
-        /* (non-Javadoc)
-         * @see component.ClickableComponent#onMouseLeave()
-         */
+        /***/
         @Override
         public void onMouseLeave() {
             texture = unlit;
@@ -202,6 +199,10 @@ public class Assets {
     }
     
     //Game Assets
+    /**
+     * A class for the game background (currently a grid to assist debugging)
+     * @author Spencer Yoder
+     */
     private static class GameBackground extends Component {
         private GameBackground() {
             super(Loader.loadTexture("/textures/debug_background.png"));
